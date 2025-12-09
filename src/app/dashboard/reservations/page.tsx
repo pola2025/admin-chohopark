@@ -91,7 +91,7 @@ export default function ReservationsPage() {
 
   // 결제 상태 토글
   const togglePaymentStatus = async (reservation: Reservation) => {
-    const newStatus = reservation.payment_status === 'paid' ? 'pending' : 'paid'
+    const newStatus = reservation.payment_status === 'completed' ? 'pending' : 'completed'
     try {
       const res = await fetch(`/api/reservations/${reservation.id}`, {
         method: 'PATCH',
@@ -99,7 +99,7 @@ export default function ReservationsPage() {
         body: JSON.stringify({ payment_status: newStatus }),
       })
       if (res.ok) {
-        toast.success(newStatus === 'paid' ? '결제 완료 처리됨' : '미결제로 변경됨')
+        toast.success(newStatus === 'completed' ? '결제 완료 처리됨' : '미결제로 변경됨')
         fetchReservations()
       } else {
         toast.error('상태 변경 실패')
@@ -225,12 +225,12 @@ export default function ReservationsPage() {
                         <button
                           onClick={() => togglePaymentStatus(r)}
                           className={`px-3 py-1 rounded-md text-sm font-medium transition-all duration-200 active:scale-95
-                            ${r.payment_status === 'paid'
+                            ${r.payment_status === 'completed'
                               ? 'bg-emerald-500 text-white shadow hover:bg-blue-500 hover:shadow-xl hover:-translate-y-1'
                               : 'bg-amber-100 text-amber-700 border border-amber-300 shadow hover:bg-blue-500 hover:text-white hover:border-blue-500 hover:shadow-xl hover:-translate-y-1'
                             }`}
                         >
-                          {r.payment_status === 'paid' ? '결제완료' : '미결제'}
+                          {r.payment_status === 'completed' ? '결제완료' : '미결제'}
                         </button>
                       </TableCell>
                       <TableCell>

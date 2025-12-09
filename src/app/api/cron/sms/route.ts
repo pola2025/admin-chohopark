@@ -50,7 +50,7 @@ export async function POST(request: NextRequest) {
       }
 
       // 미결제 상태면 발송하지 않음
-      if (reservation.payment_status !== 'paid') {
+      if (reservation.payment_status !== 'completed') {
         await supabaseAdmin
           .from('sms_schedules')
           .update({ status: 'skipped' })
