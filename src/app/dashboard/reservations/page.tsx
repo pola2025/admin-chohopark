@@ -122,7 +122,7 @@ export default function ReservationsPage() {
           <DialogTrigger asChild>
             <Button onClick={openNewDialog}>+ 새 예약</Button>
           </DialogTrigger>
-          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogContent className="w-[95vw] max-w-2xl max-h-[90vh] overflow-y-auto p-4 sm:p-6">
             <DialogHeader>
               <DialogTitle>
                 {editingReservation ? '예약 수정' : '새 예약 등록'}
@@ -141,12 +141,12 @@ export default function ReservationsPage() {
 
       {/* Filters */}
       <Card>
-        <CardContent className="pt-6">
-          <div className="flex flex-wrap gap-4">
-            <div className="flex items-center gap-2">
-              <Label>상태</Label>
+        <CardContent className="pt-4 sm:pt-6">
+          <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-3 sm:gap-4">
+            <div className="col-span-2 sm:col-span-1 flex items-center gap-2">
+              <Label className="shrink-0 text-sm">상태</Label>
               <Select value={filter.status} onValueChange={(v) => setFilter(f => ({ ...f, status: v }))}>
-                <SelectTrigger className="w-32">
+                <SelectTrigger className="flex-1 sm:w-32">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -158,34 +158,34 @@ export default function ReservationsPage() {
               </Select>
             </div>
             <div className="flex items-center gap-2">
-              <Label>시작일</Label>
+              <Label className="shrink-0 text-sm">시작</Label>
               <Input
                 type="date"
                 value={filter.from}
                 onChange={(e) => setFilter(f => ({ ...f, from: e.target.value }))}
-                className="w-40"
+                className="flex-1 sm:w-36"
               />
             </div>
             <div className="flex items-center gap-2">
-              <Label>종료일</Label>
+              <Label className="shrink-0 text-sm">종료</Label>
               <Input
                 type="date"
                 value={filter.to}
                 onChange={(e) => setFilter(f => ({ ...f, to: e.target.value }))}
-                className="w-40"
+                className="flex-1 sm:w-36"
               />
             </div>
-            <Button variant="outline" onClick={() => setFilter({ status: 'all', from: '', to: '' })}>
+            <Button variant="outline" size="sm" className="col-span-2 sm:col-span-1" onClick={() => setFilter({ status: 'all', from: '', to: '' })}>
               초기화
             </Button>
           </div>
         </CardContent>
       </Card>
 
-      {/* Table */}
+      {/* 예약 목록 */}
       <Card>
-        <CardHeader>
-          <CardTitle>예약 목록 ({pagination.total}건)</CardTitle>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base lg:text-lg">예약 목록 ({pagination.total}건)</CardTitle>
         </CardHeader>
         <CardContent>
           {loading ? (
@@ -194,7 +194,65 @@ export default function ReservationsPage() {
             <div className="text-center py-10 text-gray-500">예약이 없습니다</div>
           ) : (
             <>
-              <Table>
+              {/* 모바일 카드 뷰 */}
+              <div className="lg:hidden space-y-3">
+                {reservations.map((r) => (
+                  <div key={r.id} className="bg-white border rounded-lg p-3 sm:p-4 shadow-sm overflow-hidden">
+                    <div className="flex justify-between items-start gap-2 mb-2">
+                      <div className="min-w-0 flex-1">
+                        <div className="font-semibold text-gray-900 truncate text-sm sm:text-base">
+                          {r.company_name || r.manager_name}
+                        </div>
+                        {r.company_name && (
+                          <div className="text-xs sm:text-sm text-gray-500 truncate">{r.manager_name}</div>
+                        )}
+                      </div>
+                      <button
+                        onClick={() => togglePaymentStatus(r)}
+                        className={`shrink-0 px-2 py-1 rounded text-xs font-medium transition-all active:scale-95
+                          ${r.payment_status === 'completed'
+                            ? 'bg-emerald-500 text-white'
+                            : 'bg-amber-100 text-amber-700 border border-amber-300'
+                          }`}
+                      >
+                        {r.payment_status === 'completed' ? '완료' : '미결제'}
+                      </button>
+                    </div>
+                    <div className="grid grid-cols-2 gap-x-2 gap-y-1 text-xs sm:text-sm mb-2">
+                      <div className="flex justify-between">
+                        <span className="text-gray-500">이용일</span>
+                        <span className="font-medium">{new Date(r.use_date).toLocaleDateString('ko-KR', { month: 'short', day: 'numeric' })}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-500">상품</span>
+                        <span className="font-medium truncate ml-1">{PRODUCT_TYPES[r.product_type]?.replace(' 워크샵', '').replace(' 수련회/야유회', '')}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-500">인원</span>
+                        <span className="font-medium">{r.people_count}명</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-500">예약금</span>
+                        <span className="font-medium">{(r.deposit_amount / 10000).toFixed(0)}만원</span>
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between gap-2 pt-2 border-t">
+                      <a href={`tel:${r.phone}`} className="text-xs sm:text-sm text-blue-600 font-medium">{r.phone}</a>
+                      <div className="flex gap-1.5">
+                        <Button size="sm" variant="outline" className="h-7 px-2 text-xs" onClick={() => openEditDialog(r)}>
+                          수정
+                        </Button>
+                        <Button size="sm" variant="destructive" className="h-7 px-2 text-xs" onClick={() => handleDelete(r.id)}>
+                          삭제
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* 데스크톱 테이블 뷰 */}
+              <Table className="hidden lg:table">
                 <TableHeader>
                   <TableRow>
                     <TableHead>이용일</TableHead>
@@ -361,7 +419,7 @@ function ReservationForm({
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
         <div className="space-y-2">
           <Label>이용일 *</Label>
           <DatePicker
@@ -396,7 +454,7 @@ function ReservationForm({
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
         <div className="space-y-2">
           <Label htmlFor="company_name">업체명</Label>
           <Input
@@ -417,7 +475,7 @@ function ReservationForm({
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
         <div className="space-y-2">
           <Label htmlFor="phone">연락처 *</Label>
           <Input
@@ -450,7 +508,7 @@ function ReservationForm({
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
         <div className="space-y-2">
           <Label htmlFor="people_count">인원 *</Label>
           <Input
@@ -482,7 +540,7 @@ function ReservationForm({
 
       <div className="space-y-2">
         <Label htmlFor="deposit_amount">예약금 *</Label>
-        <div className="flex items-center gap-4">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
           <div className="relative flex-1">
             <Input
               id="deposit_amount"
@@ -497,7 +555,7 @@ function ReservationForm({
             />
             <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm">원</span>
           </div>
-          <p className="text-sm text-gray-500 whitespace-nowrap">
+          <p className="text-xs sm:text-sm text-gray-500">
             {PRODUCT_PRICES[formData.product_type]?.toLocaleString()}원 × {formData.people_count}명 = {(PRODUCT_PRICES[formData.product_type] * formData.people_count).toLocaleString()}원
           </p>
         </div>

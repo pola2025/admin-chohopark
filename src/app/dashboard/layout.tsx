@@ -14,6 +14,15 @@ const navigation = [
   { name: '방문자 통계', href: '/dashboard/analytics', icon: '📈' },
 ]
 
+// 모바일 하단바용 주요 메뉴
+const mobileNav = [
+  { name: '홈', href: '/dashboard', icon: '🏠' },
+  { name: '예약', href: '/dashboard/reservations', icon: '📅' },
+  { name: 'SMS', href: '/dashboard/sms', icon: '💬' },
+  { name: '문의', href: '/dashboard/inquiries', icon: '📩' },
+  { name: '더보기', href: '#more', icon: '☰' },
+]
+
 export default function DashboardLayout({
   children,
 }: {
@@ -29,12 +38,20 @@ export default function DashboardLayout({
     router.refresh()
   }
 
+  const handleMobileNav = (href: string) => {
+    if (href === '#more') {
+      setSidebarOpen(true)
+    } else {
+      router.push(href)
+    }
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Mobile sidebar backdrop */}
       {sidebarOpen && (
         <div
-          className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+          className="fixed inset-0 bg-black/50 z-40"
           onClick={() => setSidebarOpen(false)}
         />
       )}
@@ -53,7 +70,7 @@ export default function DashboardLayout({
               <span className="font-bold text-lg">초호쉼터</span>
             </Link>
             <button
-              className="lg:hidden p-2 text-gray-500 hover:text-gray-700"
+              className="p-2 text-gray-500 hover:text-gray-700"
               onClick={() => setSidebarOpen(false)}
             >
               ✕
@@ -96,9 +113,9 @@ export default function DashboardLayout({
       </aside>
 
       {/* Main content */}
-      <div className="lg:pl-64">
-        {/* Top bar */}
-        <header className="sticky top-0 z-30 h-16 bg-white border-b flex items-center px-4 lg:px-6">
+      <div className="lg:pl-64 pb-20 lg:pb-0">
+        {/* Top bar - 데스크톱만 표시 */}
+        <header className="sticky top-0 z-30 h-14 lg:h-16 bg-white border-b flex items-center px-4 lg:px-6">
           <button
             className="lg:hidden p-2 -ml-2 text-gray-500 hover:text-gray-700"
             onClick={() => setSidebarOpen(true)}
@@ -107,14 +124,41 @@ export default function DashboardLayout({
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
             </svg>
           </button>
-          <div className="ml-4 lg:ml-0">
-            <h1 className="text-lg font-semibold text-gray-800">관리자 대시보드</h1>
+          <div className="ml-2 lg:ml-0 flex-1">
+            <h1 className="text-base lg:text-lg font-semibold text-gray-800">
+              {navigation.find(n => n.href === pathname)?.name || '관리자 대시보드'}
+            </h1>
           </div>
         </header>
 
         {/* Page content */}
-        <main className="p-4 lg:p-6">{children}</main>
+        <main className="p-3 lg:p-6">{children}</main>
       </div>
+
+      {/* Mobile Bottom Navigation */}
+      <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white border-t shadow-lg">
+        <div className="flex justify-around items-center h-16 px-2 safe-area-pb">
+          {mobileNav.map((item) => {
+            const isActive = pathname === item.href
+            return (
+              <button
+                key={item.name}
+                onClick={() => handleMobileNav(item.href)}
+                className={`flex flex-col items-center justify-center flex-1 h-full py-1 transition-colors ${
+                  isActive
+                    ? 'text-emerald-600'
+                    : 'text-gray-500 hover:text-gray-700'
+                }`}
+              >
+                <span className="text-xl mb-0.5">{item.icon}</span>
+                <span className={`text-[10px] font-medium ${isActive ? 'text-emerald-600' : ''}`}>
+                  {item.name}
+                </span>
+              </button>
+            )
+          })}
+        </div>
+      </nav>
     </div>
   )
 }

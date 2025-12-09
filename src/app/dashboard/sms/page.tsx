@@ -70,6 +70,10 @@ export default function SmsPage() {
   const [testMessage, setTestMessage] = useState('[초호쉼터] 테스트 메시지입니다.')
   const [sending, setSending] = useState(false)
 
+  // 모바일 아코디언 상태
+  const [expandedCompany, setExpandedCompany] = useState<string | null>(null)
+  const [expandedSchedule, setExpandedSchedule] = useState<number | null>(null)
+
   const fetchSchedules = async () => {
     setLoading(true)
     try {
@@ -248,10 +252,10 @@ export default function SmsPage() {
         </CardContent>
       </Card>
 
-      {/* Table */}
+      {/* SMS 스케줄 목록 */}
       <Card>
-        <CardHeader>
-          <CardTitle>SMS 스케줄 목록</CardTitle>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base lg:text-lg">SMS 스케줄 목록</CardTitle>
         </CardHeader>
         <CardContent>
           {loading ? (
@@ -259,40 +263,131 @@ export default function SmsPage() {
           ) : schedules.length === 0 ? (
             <div className="text-center py-10 text-gray-500">스케줄이 없습니다</div>
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>예정 시간 (KST)</TableHead>
-                  <TableHead>유형</TableHead>
-                  <TableHead>수신자</TableHead>
-                  <TableHead>연락처</TableHead>
-                  <TableHead>상태</TableHead>
-                  <TableHead>발송 시간 (KST)</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {schedules.map((s) => (
-                  <TableRow key={s.id}>
-                    <TableCell>
-                      {formatKSTTime(s.scheduled_at)}
-                    </TableCell>
-                    <TableCell>{SCHEDULE_TYPES[s.schedule_type] || s.schedule_type}</TableCell>
-                    <TableCell>
-                      {s.reservation?.company_name || s.reservation?.manager_name || '-'}
-                    </TableCell>
-                    <TableCell>{s.reservation?.phone || '-'}</TableCell>
-                    <TableCell>
-                      <Badge className={STATUS_LABELS[s.status]?.color}>
-                        {STATUS_LABELS[s.status]?.label || s.status}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      {s.sent_at ? formatKSTTime(s.sent_at) : '-'}
-                    </TableCell>
+            <>
+              {/* 모바일 아코디언 뷰 */}
+              <div className="lg:hidden space-y-2">
+                {(() => {
+                  // 업체별로 그룹핑
+                  const grouped = schedules.reduce((acc, s) => {
+                    const key = s.reservation?.company_name || s.reservation?.manager_name || '미지정'
+                    if (!acc[key]) acc[key] = []
+                    acc[key].push(s)
+                    return acc
+                  }, {} as Record<string, SmsSchedule[]>)
+
+                  return Object.entries(grouped).map(([company, items]) => (
+                    <div key={company} className="border rounded-lg overflow-hidden">
+                      {/* 업체명 헤더 */}
+                      <button
+                        onClick={() => setExpandedCompany(expandedCompany === company ? null : company)}
+                        className="w-full flex items-center justify-between p-3 bg-gray-50 hover:bg-gray-100 transition-colors"
+                      >
+                        <div className="flex items-center gap-2">
+                          <span className={`transition-transform ${expandedCompany === company ? 'rotate-90' : ''}`}>
+                            ▶
+                          </span>
+                          <span className="font-semibold text-gray-900">{company}</span>
+                          <span className="text-sm text-gray-500">({items.length}건)</span>
+                        </div>
+                        <div className="flex gap-1">
+                          {items.some(i => i.status === 'pending') && (
+                            <span className="w-2 h-2 rounded-full bg-amber-400"></span>
+                          )}
+                          {items.some(i => i.status === 'sent') && (
+                            <span className="w-2 h-2 rounded-full bg-emerald-400"></span>
+                          )}
+                        </div>
+                      </button>
+
+                      {/* 스케줄 목록 */}
+                      {expandedCompany === company && (
+                        <div className="border-t">
+                          {items.map((s) => (
+                            <div key={s.id} className="border-b last:border-b-0">
+                              {/* 스케줄 헤더 */}
+                              <button
+                                onClick={() => setExpandedSchedule(expandedSchedule === s.id ? null : s.id)}
+                                className="w-full flex items-center justify-between p-3 hover:bg-gray-50 transition-colors"
+                              >
+                                <div className="flex items-center gap-2">
+                                  <span className={`text-xs transition-transform ${expandedSchedule === s.id ? 'rotate-90' : ''}`}>
+                                    ▶
+                                  </span>
+                                  <span className="text-sm font-medium">
+                                    {SCHEDULE_TYPES[s.schedule_type] || s.schedule_type}
+                                  </span>
+                                </div>
+                                <Badge className={`text-xs ${STATUS_LABELS[s.status]?.color}`}>
+                                  {STATUS_LABELS[s.status]?.label || s.status}
+                                </Badge>
+                              </button>
+
+                              {/* 스케줄 상세 */}
+                              {expandedSchedule === s.id && (
+                                <div className="px-4 pb-3 pt-1 bg-gray-50 space-y-2 text-sm">
+                                  <div className="flex justify-between">
+                                    <span className="text-gray-500">예정 시간</span>
+                                    <span className="font-medium">{formatKSTTime(s.scheduled_at)}</span>
+                                  </div>
+                                  <div className="flex justify-between">
+                                    <span className="text-gray-500">연락처</span>
+                                    <a href={`tel:${s.reservation?.phone}`} className="text-blue-600 font-medium">
+                                      {s.reservation?.phone || '-'}
+                                    </a>
+                                  </div>
+                                  {s.sent_at && (
+                                    <div className="flex justify-between">
+                                      <span className="text-gray-500">발송 시간</span>
+                                      <span className="font-medium text-emerald-600">{formatKSTTime(s.sent_at)}</span>
+                                    </div>
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  ))
+                })()}
+              </div>
+
+              {/* 데스크톱 테이블 뷰 */}
+              <Table className="hidden lg:table">
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>예정 시간 (KST)</TableHead>
+                    <TableHead>유형</TableHead>
+                    <TableHead>수신자</TableHead>
+                    <TableHead>연락처</TableHead>
+                    <TableHead>상태</TableHead>
+                    <TableHead>발송 시간 (KST)</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {schedules.map((s) => (
+                    <TableRow key={s.id}>
+                      <TableCell>
+                        {formatKSTTime(s.scheduled_at)}
+                      </TableCell>
+                      <TableCell>{SCHEDULE_TYPES[s.schedule_type] || s.schedule_type}</TableCell>
+                      <TableCell>
+                        {s.reservation?.company_name || s.reservation?.manager_name || '-'}
+                      </TableCell>
+                      <TableCell>{s.reservation?.phone || '-'}</TableCell>
+                      <TableCell>
+                        <Badge className={STATUS_LABELS[s.status]?.color}>
+                          {STATUS_LABELS[s.status]?.label || s.status}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        {s.sent_at ? formatKSTTime(s.sent_at) : '-'}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </>
           )}
         </CardContent>
       </Card>
