@@ -29,7 +29,9 @@ import {
 } from '@/components/ui/select'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
+import { DatePicker } from '@/components/ui/date-picker'
 import { toast } from 'sonner'
+import { format, parseISO } from 'date-fns'
 import { Reservation, PRODUCT_TYPES, PAYMENT_STATUS } from '@/types/reservation'
 
 export default function ReservationsPage() {
@@ -251,6 +253,13 @@ export default function ReservationsPage() {
   )
 }
 
+// 상품별 인당 가격 (원)
+const PRODUCT_PRICES: Record<string, number> = {
+  overnight: 99000,  // 1박2일 워크샵: 인당 99,000원
+  daytrip: 66000,    // 당일 수련회/야유회: 인당 66,000원
+  training: 165000,  // 2박3일 수련회: 인당 165,000원
+}
+
 function ReservationForm({
   reservation,
   onSuccess,
@@ -271,6 +280,27 @@ function ReservationForm({
     payment_status: reservation?.payment_status || 'pending',
     notes: reservation?.notes || '',
   })
+
+  // 상품 또는 인원 변경 시 예약금 자동 계산
+  const updateDepositAmount = (productType: string, peopleCount: number) => {
+    const pricePerPerson = PRODUCT_PRICES[productType] || 50000
+    const calculatedAmount = pricePerPerson * peopleCount
+    setFormData(f => ({ ...f, deposit_amount: calculatedAmount }))
+  }
+
+  const handleProductChange = (value: string) => {
+    setFormData(f => ({ ...f, product_type: value as 'overnight' | 'daytrip' | 'training' }))
+    if (!reservation) {
+      updateDepositAmount(value, formData.people_count)
+    }
+  }
+
+  const handlePeopleCountChange = (value: number) => {
+    setFormData(f => ({ ...f, people_count: value }))
+    if (!reservation) {
+      updateDepositAmount(formData.product_type, value)
+    }
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -306,27 +336,33 @@ function ReservationForm({
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
-          <Label htmlFor="use_date">이용일 *</Label>
-          <Input
-            id="use_date"
-            type="date"
-            value={formData.use_date}
-            onChange={(e) => setFormData(f => ({ ...f, use_date: e.target.value }))}
-            required
+          <Label>이용일 *</Label>
+          <DatePicker
+            date={formData.use_date ? parseISO(formData.use_date) : undefined}
+            onDateChange={(date) => {
+              setFormData(f => ({
+                ...f,
+                use_date: date ? format(date, 'yyyy-MM-dd') : ''
+              }))
+            }}
+            placeholder="이용일을 선택하세요"
+            minDate={new Date()}
           />
         </div>
         <div className="space-y-2">
           <Label htmlFor="product_type">상품 *</Label>
           <Select
             value={formData.product_type}
-            onValueChange={(v) => setFormData(f => ({ ...f, product_type: v as 'overnight' | 'daytrip' | 'training' }))}
+            onValueChange={handleProductChange}
           >
             <SelectTrigger>
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
               {Object.entries(PRODUCT_TYPES).map(([key, label]) => (
-                <SelectItem key={key} value={key}>{label}</SelectItem>
+                <SelectItem key={key} value={key}>
+                  {label} ({(PRODUCT_PRICES[key] || 0).toLocaleString()}원/인)
+                </SelectItem>
               ))}
             </SelectContent>
           </Select>
@@ -376,27 +412,15 @@ function ReservationForm({
         </div>
       </div>
 
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
           <Label htmlFor="people_count">인원 *</Label>
           <Input
             id="people_count"
             type="number"
             value={formData.people_count}
-            onChange={(e) => setFormData(f => ({ ...f, people_count: parseInt(e.target.value) }))}
+            onChange={(e) => handlePeopleCountChange(parseInt(e.target.value) || 1)}
             min={1}
-            required
-          />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="deposit_amount">예약금 *</Label>
-          <Input
-            id="deposit_amount"
-            type="number"
-            value={formData.deposit_amount}
-            onChange={(e) => setFormData(f => ({ ...f, deposit_amount: parseInt(e.target.value) }))}
-            min={0}
-            step={10000}
             required
           />
         </div>
@@ -415,6 +439,29 @@ function ReservationForm({
               ))}
             </SelectContent>
           </Select>
+        </div>
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="deposit_amount">예약금 *</Label>
+        <div className="flex items-center gap-4">
+          <div className="relative flex-1">
+            <Input
+              id="deposit_amount"
+              type="text"
+              value={formData.deposit_amount.toLocaleString()}
+              onChange={(e) => {
+                const value = parseInt(e.target.value.replace(/,/g, '')) || 0
+                setFormData(f => ({ ...f, deposit_amount: value }))
+              }}
+              className="pr-8"
+              required
+            />
+            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm">원</span>
+          </div>
+          <p className="text-sm text-gray-500 whitespace-nowrap">
+            {PRODUCT_PRICES[formData.product_type]?.toLocaleString()}원 × {formData.people_count}명 = {(PRODUCT_PRICES[formData.product_type] * formData.people_count).toLocaleString()}원
+          </p>
         </div>
       </div>
 

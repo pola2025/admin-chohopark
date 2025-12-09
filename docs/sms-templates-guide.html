@@ -1,0 +1,666 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>초호쉼터 SMS 템플릿 기획안</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .sms-bubble {
+            background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
+            border-radius: 18px;
+            border-bottom-left-radius: 4px;
+            position: relative;
+            white-space: pre-wrap;
+            font-family: 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+        }
+        .sms-bubble::before {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: -8px;
+            width: 20px;
+            height: 20px;
+            background: linear-gradient(135deg, transparent 50%, #c8e6c9 50%);
+            border-bottom-right-radius: 16px;
+        }
+        .copy-btn:hover {
+            transform: scale(1.05);
+        }
+        .tab-active {
+            background: #16a34a;
+            color: white;
+        }
+        .warning-box {
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            border-left: 4px solid #f59e0b;
+        }
+        .danger-box {
+            background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+            border-left: 4px solid #ef4444;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen">
+    <!-- Header -->
+    <header class="bg-green-600 text-white py-6 shadow-lg">
+        <div class="max-w-6xl mx-auto px-4">
+            <h1 class="text-3xl font-bold">📱 초호쉼터 SMS 템플릿 기획안</h1>
+            <p class="mt-2 text-green-100">예약 고객 대상 자동 발송 메시지 템플릿 (v2 - 시간/추가비용 반영)</p>
+        </div>
+    </header>
+
+    <main class="max-w-6xl mx-auto px-4 py-8">
+        <!-- 핵심 정보 요약 -->
+        <section class="bg-white rounded-2xl shadow-lg p-6 mb-8">
+            <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+                <span class="text-2xl">⏰</span> 상품별 이용 시간
+            </h2>
+            <div class="grid md:grid-cols-3 gap-4 mb-6">
+                <div class="bg-green-50 p-4 rounded-xl border border-green-200">
+                    <h3 class="font-bold text-green-800 mb-2">🏕️ 1박2일 워크샵</h3>
+                    <p class="text-lg font-semibold">입실: <span class="text-green-600">15:00</span></p>
+                    <p class="text-lg font-semibold">퇴실: <span class="text-green-600">11:00</span> (익일)</p>
+                </div>
+                <div class="bg-orange-50 p-4 rounded-xl border border-orange-200">
+                    <h3 class="font-bold text-orange-800 mb-2">☀️ 당일 야유회</h3>
+                    <p class="text-lg font-semibold">입실: <span class="text-orange-600">10:00</span></p>
+                    <p class="text-lg font-semibold">퇴실: <span class="text-orange-600">17:00</span> (당일)</p>
+                </div>
+                <div class="bg-purple-50 p-4 rounded-xl border border-purple-200">
+                    <h3 class="font-bold text-purple-800 mb-2">🎯 2박3일 수련회</h3>
+                    <p class="text-lg font-semibold">입실: <span class="text-purple-600">15:00</span></p>
+                    <p class="text-lg font-semibold">퇴실: <span class="text-purple-600">11:00</span> (3일차)</p>
+                </div>
+            </div>
+
+            <!-- 추가 비용 경고 -->
+            <div class="danger-box p-4 rounded-lg">
+                <h3 class="font-bold text-red-800 text-lg mb-2">⚠️ 이용시간 전 이용 시 추가 비용</h3>
+                <p class="text-red-700 text-xl font-bold">시간당 / 인당 10,000원 추가</p>
+                <p class="text-red-600 text-sm mt-1">예: 30명이 1시간 초과 시 → 30만원 추가</p>
+            </div>
+        </section>
+
+        <!-- 이용 규칙 요약 -->
+        <section class="bg-white rounded-2xl shadow-lg p-6 mb-8">
+            <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+                <span class="text-2xl">📋</span> 반영된 이용 규칙
+            </h2>
+            <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div class="flex items-center gap-3 p-3 bg-red-50 rounded-lg border border-red-200">
+                    <span class="text-2xl">⚽</span>
+                    <div>
+                        <p class="font-semibold text-red-800">축구화 착용 금지</p>
+                        <p class="text-sm text-red-600">잔디 보호</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-3 p-3 bg-orange-50 rounded-lg border border-orange-200">
+                    <span class="text-2xl">🔊</span>
+                    <div>
+                        <p class="font-semibold text-orange-800">개별 앰프 금지</p>
+                        <p class="text-sm text-orange-600">주변 환경 배려</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-3 p-3 bg-purple-50 rounded-lg border border-purple-200">
+                    <span class="text-2xl">🌙</span>
+                    <div>
+                        <p class="font-semibold text-purple-800">매너타임</p>
+                        <p class="text-sm text-purple-600">21:30 이후</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-3 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                    <span class="text-2xl">💰</span>
+                    <div>
+                        <p class="font-semibold text-blue-800">시간 초과</p>
+                        <p class="text-sm text-blue-600">1만원/시간/인당</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 발송 타이밍 -->
+        <section class="bg-white rounded-2xl shadow-lg p-6 mb-8">
+            <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+                <span class="text-2xl">📤</span> SMS 발송 타이밍
+            </h2>
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm">
+                    <thead>
+                        <tr class="bg-gray-100">
+                            <th class="px-4 py-3 text-left font-semibold">발송 시점</th>
+                            <th class="px-4 py-3 text-left font-semibold">1박2일 워크샵</th>
+                            <th class="px-4 py-3 text-left font-semibold">당일 야유회</th>
+                            <th class="px-4 py-3 text-left font-semibold">2박3일 수련회</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y">
+                        <tr>
+                            <td class="px-4 py-3 font-medium">D-1 안내</td>
+                            <td class="px-4 py-3">전날 10:00</td>
+                            <td class="px-4 py-3">전날 10:00</td>
+                            <td class="px-4 py-3">전날 10:00</td>
+                        </tr>
+                        <tr class="bg-gray-50">
+                            <td class="px-4 py-3 font-medium">당일 아침</td>
+                            <td class="px-4 py-3">당일 08:00</td>
+                            <td class="px-4 py-3">당일 08:00</td>
+                            <td class="px-4 py-3">당일 08:00</td>
+                        </tr>
+                        <tr>
+                            <td class="px-4 py-3 font-medium">식사 안내</td>
+                            <td class="px-4 py-3">당일 17:30</td>
+                            <td class="px-4 py-3">당일 11:30</td>
+                            <td class="px-4 py-3">당일 17:30</td>
+                        </tr>
+                        <tr class="bg-gray-50">
+                            <td class="px-4 py-3 font-medium">퇴실 안내</td>
+                            <td class="px-4 py-3">익일 10:00</td>
+                            <td class="px-4 py-3">당일 16:00</td>
+                            <td class="px-4 py-3">3일차 10:00</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- 탭 네비게이션 -->
+        <div class="flex gap-2 mb-6 flex-wrap">
+            <button onclick="showTab('overnight')" id="tab-overnight" class="px-6 py-3 rounded-full font-semibold transition-all tab-active">
+                🏕️ 1박2일 워크샵
+            </button>
+            <button onclick="showTab('daytrip')" id="tab-daytrip" class="px-6 py-3 rounded-full font-semibold transition-all bg-gray-200 hover:bg-gray-300">
+                ☀️ 당일 야유회
+            </button>
+            <button onclick="showTab('training')" id="tab-training" class="px-6 py-3 rounded-full font-semibold transition-all bg-gray-200 hover:bg-gray-300">
+                🎯 2박3일 수련회
+            </button>
+        </div>
+
+        <!-- 1박2일 워크샵 -->
+        <div id="content-overnight" class="space-y-6">
+            <!-- D-1 -->
+            <div class="bg-white rounded-2xl shadow-lg overflow-hidden">
+                <div class="bg-blue-500 text-white px-6 py-4">
+                    <h3 class="text-lg font-bold">📅 D-1 안내 (전날 오전 10시)</h3>
+                </div>
+                <div class="p-6">
+                    <div class="flex flex-col lg:flex-row gap-6">
+                        <div class="flex-1">
+                            <div class="sms-bubble p-4 text-sm leading-relaxed" id="overnight-d1">[초호쉼터] {company_name} 담당자님, 내일 워크샵 이용 예정입니다.
+
+▶ 일시: {use_date}
+▶ 인원: {people_count}명
+▶ 입실: 오후 3시 / 퇴실: 익일 오전 11시
+
+📌 필수 안내사항
+• 축구화(스터드) 착용 금지
+• 21:30 이후 매너타임
+• 개별 앰프 사용 불가
+• 오후 3시 전 이용 시 1만원/시간/인당 추가
+
+🏠 주소: 경기 파주시 법원읍 초리골길 134
+📞 문의: 010-3254-0029</div>
+                        </div>
+                        <div class="lg:w-64 space-y-3">
+                            <div class="text-sm text-gray-500">
+                                <p><strong>예상 길이:</strong> <span class="text-blue-600">약 250자 (LMS)</span></p>
+                                <p><strong>발송 비용:</strong> 약 30원/건</p>
+                            </div>
+                            <button onclick="copyText('overnight-d1')" class="copy-btn w-full bg-blue-500 text-white py-2 px-4 rounded-lg font-semibold transition-all hover:bg-blue-600">
+                                📋 복사하기
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 당일 아침 -->
+            <div class="bg-white rounded-2xl shadow-lg overflow-hidden">
+                <div class="bg-orange-500 text-white px-6 py-4">
+                    <h3 class="text-lg font-bold">🌅 당일 아침 (오전 8시)</h3>
+                </div>
+                <div class="p-6">
+                    <div class="flex flex-col lg:flex-row gap-6">
+                        <div class="flex-1">
+                            <div class="sms-bubble p-4 text-sm leading-relaxed" id="overnight-morning">[초호쉼터] {company_name} 담당자님, 오늘 워크샵 일정입니다.
+
+▶ 입실: 오후 3시 (15:00)
+▶ 퇴실: 내일 오전 11시
+▶ 주차: 대형버스/승용차 가능
+
+⚠️ 오후 3시 전 이용 시 1만원/시간/인당 추가
+⚠️ 시간 초과 시 1만원/시간/인당 추가
+
+🏠 경기 파주시 법원읍 초리골길 134
+📞 현장: 010-3254-0029</div>
+                        </div>
+                        <div class="lg:w-64 space-y-3">
+                            <div class="text-sm text-gray-500">
+                                <p><strong>예상 길이:</strong> <span class="text-orange-600">약 200자 (LMS)</span></p>
+                                <p><strong>발송 비용:</strong> 약 30원/건</p>
+                            </div>
+                            <button onclick="copyText('overnight-morning')" class="copy-btn w-full bg-orange-500 text-white py-2 px-4 rounded-lg font-semibold transition-all hover:bg-orange-600">
+                                📋 복사하기
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 식사 안내 -->
+            <div class="bg-white rounded-2xl shadow-lg overflow-hidden">
+                <div class="bg-green-500 text-white px-6 py-4">
+                    <h3 class="text-lg font-bold">🍖 식사 안내 (오후 5시 30분)</h3>
+                </div>
+                <div class="p-6">
+                    <div class="flex flex-col lg:flex-row gap-6">
+                        <div class="flex-1">
+                            <div class="sms-bubble p-4 text-sm leading-relaxed" id="overnight-meal">[초호쉼터] {company_name} 담당자님, 저녁 식사 안내드립니다.
+
+⏰ 저녁 식사: 6시 30분 (18:30~21:30)
+🍖 메뉴: 6시간 훈연 바베큐
+   - 등갈비/삼겹살/오리
+🍺 주류/음료 무한리필
+
+즐거운 식사 되세요!</div>
+                        </div>
+                        <div class="lg:w-64 space-y-3">
+                            <div class="text-sm text-gray-500">
+                                <p><strong>예상 길이:</strong> <span class="text-green-600">약 130자 (LMS)</span></p>
+                                <p><strong>발송 비용:</strong> 약 30원/건</p>
+                            </div>
+                            <button onclick="copyText('overnight-meal')" class="copy-btn w-full bg-green-500 text-white py-2 px-4 rounded-lg font-semibold transition-all hover:bg-green-600">
+                                📋 복사하기
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 퇴실 안내 -->
+            <div class="bg-white rounded-2xl shadow-lg overflow-hidden">
+                <div class="bg-purple-500 text-white px-6 py-4">
+                    <h3 class="text-lg font-bold">👋 퇴실 안내 (익일 오전 10시)</h3>
+                </div>
+                <div class="p-6">
+                    <div class="flex flex-col lg:flex-row gap-6">
+                        <div class="flex-1">
+                            <div class="sms-bubble p-4 text-sm leading-relaxed" id="overnight-close">[초호쉼터] {company_name} 담당자님, 퇴실 안내드립니다.
+
+⏰ 퇴실: 오전 11시 (11:00)
+☕ 조식: 8시 30분~10시
+
+⚠️ 퇴실 시간 초과 시
+   1만원/시간/인당 추가됩니다.
+
+이용해 주셔서 감사합니다!
+재방문 시 10% 할인 혜택!</div>
+                        </div>
+                        <div class="lg:w-64 space-y-3">
+                            <div class="text-sm text-gray-500">
+                                <p><strong>예상 길이:</strong> <span class="text-purple-600">약 150자 (LMS)</span></p>
+                                <p><strong>발송 비용:</strong> 약 30원/건</p>
+                            </div>
+                            <button onclick="copyText('overnight-close')" class="copy-btn w-full bg-purple-500 text-white py-2 px-4 rounded-lg font-semibold transition-all hover:bg-purple-600">
+                                📋 복사하기
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 당일 야유회 -->
+        <div id="content-daytrip" class="space-y-6 hidden">
+            <!-- D-1 -->
+            <div class="bg-white rounded-2xl shadow-lg overflow-hidden">
+                <div class="bg-blue-500 text-white px-6 py-4">
+                    <h3 class="text-lg font-bold">📅 D-1 안내 (전날 오전 10시)</h3>
+                </div>
+                <div class="p-6">
+                    <div class="flex flex-col lg:flex-row gap-6">
+                        <div class="flex-1">
+                            <div class="sms-bubble p-4 text-sm leading-relaxed" id="daytrip-d1">[초호쉼터] {company_name} 담당자님, 내일 야유회 이용 예정입니다.
+
+▶ 일시: {use_date}
+▶ 인원: {people_count}명
+▶ 입실: 오전 10시 / 퇴실: 오후 5시
+
+📌 필수 안내사항
+• 축구화(스터드) 착용 금지
+• 개별 앰프 사용 불가
+• 17시 퇴실 시간 엄수!
+• 오전 10시 전 이용 시 1만원/시간/인당 추가
+
+🏠 주소: 경기 파주시 법원읍 초리골길 134
+📞 문의: 010-3254-0029</div>
+                        </div>
+                        <div class="lg:w-64 space-y-3">
+                            <div class="text-sm text-gray-500">
+                                <p><strong>예상 길이:</strong> <span class="text-blue-600">약 250자 (LMS)</span></p>
+                            </div>
+                            <button onclick="copyText('daytrip-d1')" class="copy-btn w-full bg-blue-500 text-white py-2 px-4 rounded-lg font-semibold transition-all hover:bg-blue-600">
+                                📋 복사하기
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 당일 아침 -->
+            <div class="bg-white rounded-2xl shadow-lg overflow-hidden">
+                <div class="bg-orange-500 text-white px-6 py-4">
+                    <h3 class="text-lg font-bold">🌅 당일 아침 (오전 8시)</h3>
+                </div>
+                <div class="p-6">
+                    <div class="flex flex-col lg:flex-row gap-6">
+                        <div class="flex-1">
+                            <div class="sms-bubble p-4 text-sm leading-relaxed" id="daytrip-morning">[초호쉼터] {company_name} 담당자님, 오늘 야유회 일정입니다.
+
+▶ 입실: 오전 10시 (10:00)
+▶ 퇴실: 오후 5시 (17:00) ⚠️엄수
+
+⚠️ 오전 10시 전 이용 시 1만원/시간/인당 추가
+⚠️ 17시 퇴실 절대 준수
+   (초과 시 1만원/시간/인당 추가)
+
+🏠 경기 파주시 법원읍 초리골길 134
+📞 현장: 010-3254-0029</div>
+                        </div>
+                        <div class="lg:w-64 space-y-3">
+                            <div class="text-sm text-gray-500">
+                                <p><strong>예상 길이:</strong> <span class="text-orange-600">약 200자 (LMS)</span></p>
+                            </div>
+                            <button onclick="copyText('daytrip-morning')" class="copy-btn w-full bg-orange-500 text-white py-2 px-4 rounded-lg font-semibold transition-all hover:bg-orange-600">
+                                📋 복사하기
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 식사 안내 -->
+            <div class="bg-white rounded-2xl shadow-lg overflow-hidden">
+                <div class="bg-green-500 text-white px-6 py-4">
+                    <h3 class="text-lg font-bold">🍖 식사 안내 (오전 11시 30분)</h3>
+                </div>
+                <div class="p-6">
+                    <div class="flex flex-col lg:flex-row gap-6">
+                        <div class="flex-1">
+                            <div class="sms-bubble p-4 text-sm leading-relaxed" id="daytrip-meal">[초호쉼터] {company_name} 담당자님, 점심 식사 안내드립니다.
+
+⏰ 점심 식사: 12시 (12:00)
+🍖 메뉴: 6시간 훈연 바베큐
+   - 등갈비/삼겹살/오리
+🍺 주류/음료 무한리필
+
+⚠️ 퇴실: 오후 5시 (17:00)
+즐거운 식사 되세요!</div>
+                        </div>
+                        <div class="lg:w-64 space-y-3">
+                            <div class="text-sm text-gray-500">
+                                <p><strong>예상 길이:</strong> <span class="text-green-600">약 150자 (LMS)</span></p>
+                            </div>
+                            <button onclick="copyText('daytrip-meal')" class="copy-btn w-full bg-green-500 text-white py-2 px-4 rounded-lg font-semibold transition-all hover:bg-green-600">
+                                📋 복사하기
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 퇴실 안내 -->
+            <div class="bg-white rounded-2xl shadow-lg overflow-hidden">
+                <div class="bg-red-500 text-white px-6 py-4">
+                    <h3 class="text-lg font-bold">⚠️ 퇴실 안내 (오후 4시) - 중요!</h3>
+                </div>
+                <div class="p-6">
+                    <div class="flex flex-col lg:flex-row gap-6">
+                        <div class="flex-1">
+                            <div class="sms-bubble p-4 text-sm leading-relaxed" id="daytrip-close">[초호쉼터] {company_name} 담당자님, 퇴실 1시간 전입니다.
+
+⏰ 퇴실: 오후 5시 (17:00)
+
+⚠️ 퇴실 시간 엄수 부탁드립니다!
+   초과 시 1만원/시간/인 추가
+
+이용해 주셔서 감사합니다!
+재방문 시 10% 할인 혜택!</div>
+                        </div>
+                        <div class="lg:w-64 space-y-3">
+                            <div class="text-sm text-gray-500">
+                                <p><strong>예상 길이:</strong> <span class="text-red-600">약 130자 (LMS)</span></p>
+                            </div>
+                            <button onclick="copyText('daytrip-close')" class="copy-btn w-full bg-red-500 text-white py-2 px-4 rounded-lg font-semibold transition-all hover:bg-red-600">
+                                📋 복사하기
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2박3일 수련회 -->
+        <div id="content-training" class="space-y-6 hidden">
+            <!-- D-1 -->
+            <div class="bg-white rounded-2xl shadow-lg overflow-hidden">
+                <div class="bg-blue-500 text-white px-6 py-4">
+                    <h3 class="text-lg font-bold">📅 D-1 안내 (전날 오전 10시)</h3>
+                </div>
+                <div class="p-6">
+                    <div class="flex flex-col lg:flex-row gap-6">
+                        <div class="flex-1">
+                            <div class="sms-bubble p-4 text-sm leading-relaxed" id="training-d1">[초호쉼터] {company_name} 담당자님, 내일 수련회가 시작됩니다.
+
+▶ 일시: {use_date} (2박3일)
+▶ 인원: {people_count}명
+▶ 입실: 오후 3시 / 퇴실: 3일차 오전 11시
+
+📌 필수 안내사항
+• 축구화(스터드) 착용 금지
+• 21:30 이후 매너타임
+• 개별 앰프 사용 불가
+• 오후 3시 전 이용 시 1만원/시간/인당 추가
+
+🏠 주소: 경기 파주시 법원읍 초리골길 134
+📞 문의: 010-3254-0029</div>
+                        </div>
+                        <div class="lg:w-64 space-y-3">
+                            <div class="text-sm text-gray-500">
+                                <p><strong>예상 길이:</strong> <span class="text-blue-600">약 270자 (LMS)</span></p>
+                            </div>
+                            <button onclick="copyText('training-d1')" class="copy-btn w-full bg-blue-500 text-white py-2 px-4 rounded-lg font-semibold transition-all hover:bg-blue-600">
+                                📋 복사하기
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 당일 아침 -->
+            <div class="bg-white rounded-2xl shadow-lg overflow-hidden">
+                <div class="bg-orange-500 text-white px-6 py-4">
+                    <h3 class="text-lg font-bold">🌅 당일 아침 (오전 8시)</h3>
+                </div>
+                <div class="p-6">
+                    <div class="flex flex-col lg:flex-row gap-6">
+                        <div class="flex-1">
+                            <div class="sms-bubble p-4 text-sm leading-relaxed" id="training-morning">[초호쉼터] {company_name} 담당자님, 오늘 수련회가 시작됩니다.
+
+▶ 입실: 오후 3시 (15:00)
+▶ 퇴실: 3일차 오전 11시
+▶ 주차: 대형버스/승용차 가능
+
+⚠️ 오후 3시 전 이용 시 1만원/시간/인당 추가
+⚠️ 시간 초과 시 1만원/시간/인당 추가
+
+🏠 경기 파주시 법원읍 초리골길 134
+📞 현장: 010-3254-0029</div>
+                        </div>
+                        <div class="lg:w-64 space-y-3">
+                            <div class="text-sm text-gray-500">
+                                <p><strong>예상 길이:</strong> <span class="text-orange-600">약 210자 (LMS)</span></p>
+                            </div>
+                            <button onclick="copyText('training-morning')" class="copy-btn w-full bg-orange-500 text-white py-2 px-4 rounded-lg font-semibold transition-all hover:bg-orange-600">
+                                📋 복사하기
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 식사 안내 -->
+            <div class="bg-white rounded-2xl shadow-lg overflow-hidden">
+                <div class="bg-green-500 text-white px-6 py-4">
+                    <h3 class="text-lg font-bold">🍖 식사 안내 (오후 5시 30분)</h3>
+                </div>
+                <div class="p-6">
+                    <div class="flex flex-col lg:flex-row gap-6">
+                        <div class="flex-1">
+                            <div class="sms-bubble p-4 text-sm leading-relaxed" id="training-meal">[초호쉼터] {company_name} 담당자님, 저녁 식사 안내드립니다.
+
+⏰ 저녁 식사: 6시 30분 (18:30~21:30)
+🍖 메뉴: 6시간 훈연 바베큐
+   - 등갈비/삼겹살/오리
+🍺 주류/음료 무한리필
+
+즐거운 식사 되세요!</div>
+                        </div>
+                        <div class="lg:w-64 space-y-3">
+                            <div class="text-sm text-gray-500">
+                                <p><strong>예상 길이:</strong> <span class="text-green-600">약 130자 (LMS)</span></p>
+                            </div>
+                            <button onclick="copyText('training-meal')" class="copy-btn w-full bg-green-500 text-white py-2 px-4 rounded-lg font-semibold transition-all hover:bg-green-600">
+                                📋 복사하기
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 퇴실 안내 -->
+            <div class="bg-white rounded-2xl shadow-lg overflow-hidden">
+                <div class="bg-purple-500 text-white px-6 py-4">
+                    <h3 class="text-lg font-bold">👋 퇴실 안내 (3일차 오전 10시)</h3>
+                </div>
+                <div class="p-6">
+                    <div class="flex flex-col lg:flex-row gap-6">
+                        <div class="flex-1">
+                            <div class="sms-bubble p-4 text-sm leading-relaxed" id="training-close">[초호쉼터] {company_name} 담당자님, 퇴실 안내드립니다.
+
+⏰ 퇴실: 오전 11시 (11:00)
+☕ 조식: 8시 30분~10시
+
+⚠️ 퇴실 시간 초과 시
+   1만원/시간/인당 추가됩니다.
+
+2박3일 이용해 주셔서 감사합니다!
+재방문 시 10% 할인 혜택!</div>
+                        </div>
+                        <div class="lg:w-64 space-y-3">
+                            <div class="text-sm text-gray-500">
+                                <p><strong>예상 길이:</strong> <span class="text-purple-600">약 160자 (LMS)</span></p>
+                            </div>
+                            <button onclick="copyText('training-close')" class="copy-btn w-full bg-purple-500 text-white py-2 px-4 rounded-lg font-semibold transition-all hover:bg-purple-600">
+                                📋 복사하기
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 변수 설명 -->
+        <section class="bg-amber-50 border border-amber-200 rounded-2xl p-6 mt-8">
+            <h2 class="text-xl font-bold text-amber-800 mb-4 flex items-center gap-2">
+                <span class="text-2xl">💡</span> 사용 가능한 변수
+            </h2>
+            <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div class="bg-white p-3 rounded-lg">
+                    <code class="text-amber-700 font-mono">{company_name}</code>
+                    <p class="text-sm text-gray-600 mt-1">업체명 (없으면 담당자명)</p>
+                </div>
+                <div class="bg-white p-3 rounded-lg">
+                    <code class="text-amber-700 font-mono">{manager_name}</code>
+                    <p class="text-sm text-gray-600 mt-1">담당자명</p>
+                </div>
+                <div class="bg-white p-3 rounded-lg">
+                    <code class="text-amber-700 font-mono">{phone}</code>
+                    <p class="text-sm text-gray-600 mt-1">연락처</p>
+                </div>
+                <div class="bg-white p-3 rounded-lg">
+                    <code class="text-amber-700 font-mono">{use_date}</code>
+                    <p class="text-sm text-gray-600 mt-1">이용일 (예: 2024-12-25)</p>
+                </div>
+                <div class="bg-white p-3 rounded-lg">
+                    <code class="text-amber-700 font-mono">{people_count}</code>
+                    <p class="text-sm text-gray-600 mt-1">예약 인원</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 비용 안내 -->
+        <section class="bg-gray-800 text-white rounded-2xl p-6 mt-8">
+            <h2 class="text-xl font-bold mb-4 flex items-center gap-2">
+                <span class="text-2xl">💰</span> 예상 발송 비용
+            </h2>
+            <div class="grid sm:grid-cols-3 gap-6">
+                <div class="text-center">
+                    <p class="text-3xl font-bold text-green-400">SMS</p>
+                    <p class="text-gray-400 text-sm mt-1">90바이트 이하</p>
+                    <p class="text-2xl font-bold mt-2">~10원/건</p>
+                </div>
+                <div class="text-center">
+                    <p class="text-3xl font-bold text-blue-400">LMS</p>
+                    <p class="text-gray-400 text-sm mt-1">90~2,000바이트</p>
+                    <p class="text-2xl font-bold mt-2">~30원/건</p>
+                </div>
+                <div class="text-center">
+                    <p class="text-3xl font-bold text-purple-400">예약 1건당</p>
+                    <p class="text-gray-400 text-sm mt-1">4회 발송 기준</p>
+                    <p class="text-2xl font-bold mt-2">~120원</p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Toast -->
+    <div id="toast" class="fixed bottom-4 right-4 bg-green-600 text-white px-6 py-3 rounded-lg shadow-lg transform translate-y-20 opacity-0 transition-all duration-300">
+        ✅ 클립보드에 복사되었습니다!
+    </div>
+
+    <script>
+        function showTab(type) {
+            // Hide all content
+            document.querySelectorAll('[id^="content-"]').forEach(el => el.classList.add('hidden'));
+            // Remove active from all tabs
+            document.querySelectorAll('[id^="tab-"]').forEach(el => {
+                el.classList.remove('tab-active');
+                el.classList.add('bg-gray-200');
+            });
+
+            // Show selected content
+            document.getElementById('content-' + type).classList.remove('hidden');
+            // Activate selected tab
+            const activeTab = document.getElementById('tab-' + type);
+            activeTab.classList.add('tab-active');
+            activeTab.classList.remove('bg-gray-200');
+        }
+
+        function copyText(elementId) {
+            const element = document.getElementById(elementId);
+            const text = element.innerText;
+
+            navigator.clipboard.writeText(text).then(() => {
+                const toast = document.getElementById('toast');
+                toast.classList.remove('translate-y-20', 'opacity-0');
+
+                setTimeout(() => {
+                    toast.classList.add('translate-y-20', 'opacity-0');
+                }, 2000);
+            });
+        }
+    </script>
+</body>
+</html>

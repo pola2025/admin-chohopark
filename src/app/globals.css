@@ -120,3 +120,27 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* react-day-picker v9 선택 스타일 */
+td[aria-selected="true"] button,
+td[data-selected="true"] button {
+  background-color: #059669 !important;
+  color: white !important;
+}
+td[aria-selected="true"] button:hover,
+td[data-selected="true"] button:hover {
+  background-color: #047857 !important;
+  color: white !important;
+}
+
+/* 예약 있는 날짜 - 주황색 */
+td[data-reserved="true"] button {
+  background-color: #fef3c7 !important;
+  color: #92400e !important;
+  font-weight: 600;
+}
+td[data-reserved="true"][aria-selected="true"] button,
+td[data-reserved="true"][data-selected="true"] button {
+  background-color: #059669 !important;
+  color: white !important;
+}

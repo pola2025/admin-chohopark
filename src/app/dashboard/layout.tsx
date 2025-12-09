@@ -11,6 +11,7 @@ const navigation = [
   { name: 'SMS 관리', href: '/dashboard/sms', icon: '💬' },
   { name: '메시지 템플릿', href: '/dashboard/templates', icon: '📝' },
   { name: '견적 문의', href: '/dashboard/inquiries', icon: '📩' },
+  { name: '방문자 통계', href: '/dashboard/analytics', icon: '📈' },
 ]
 
 export default function DashboardLayout({

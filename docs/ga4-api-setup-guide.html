@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GA4 Data API 설정 가이드 - 초호쉼터 관리자</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .copy-btn:active { transform: scale(0.95); }
+        .step-card { transition: all 0.2s ease; }
+        .step-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <div class="max-w-4xl mx-auto px-4 py-8">
+        <!-- Header -->
+        <div class="bg-gradient-to-r from-orange-500 to-red-500 rounded-2xl p-8 text-white mb-8">
+            <div class="flex items-center gap-3 mb-4">
+                <svg class="w-10 h-10" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M22.84 2.998c-.017-.08-.036-.16-.06-.237a3.093 3.093 0 0 0-.755-1.163A2.986 2.986 0 0 0 20.865 1H3.135c-.47 0-.93.112-1.345.33a2.991 2.991 0 0 0-1.16.598c-.33.282-.596.633-.775 1.028-.104.23-.18.473-.223.724L.001 12l8.39 9.676a2.048 2.048 0 0 0 1.544.696c.573 0 1.12-.241 1.508-.666l9.556-11.03 1.842-7.678z"/>
+                </svg>
+                <h1 class="text-2xl font-bold">GA4 Data API 설정 가이드</h1>
+            </div>
+            <p class="text-orange-100">관리자 대시보드에서 GA4 통계를 확인하기 위한 API 연동 설정</p>
+            <p class="text-sm text-orange-200 mt-2">최종 업데이트: 2025년 12월</p>
+        </div>
+
+        <!-- Progress Checklist -->
+        <div class="bg-white rounded-xl p-6 mb-8 shadow-sm">
+            <h2 class="text-lg font-semibold mb-4 flex items-center gap-2">
+                <span class="text-green-500">✓</span> 진행 상황 체크리스트
+            </h2>
+            <div class="space-y-3">
+                <label class="flex items-center gap-3 cursor-pointer">
+                    <input type="checkbox" id="check1" class="w-5 h-5 rounded border-gray-300 text-green-500 focus:ring-green-500">
+                    <span>Step 1: Google Cloud Console에서 프로젝트 생성</span>
+                </label>
+                <label class="flex items-center gap-3 cursor-pointer">
+                    <input type="checkbox" id="check2" class="w-5 h-5 rounded border-gray-300 text-green-500 focus:ring-green-500">
+                    <span>Step 2: Google Analytics Data API 활성화</span>
+                </label>
+                <label class="flex items-center gap-3 cursor-pointer">
+                    <input type="checkbox" id="check3" class="w-5 h-5 rounded border-gray-300 text-green-500 focus:ring-green-500">
+                    <span>Step 3: 서비스 계정 생성 및 키 다운로드</span>
+                </label>
+                <label class="flex items-center gap-3 cursor-pointer">
+                    <input type="checkbox" id="check4" class="w-5 h-5 rounded border-gray-300 text-green-500 focus:ring-green-500">
+                    <span>Step 4: GA4 속성에 서비스 계정 추가</span>
+                </label>
+                <label class="flex items-center gap-3 cursor-pointer">
+                    <input type="checkbox" id="check5" class="w-5 h-5 rounded border-gray-300 text-green-500 focus:ring-green-500">
+                    <span>Step 5: 환경변수 설정</span>
+                </label>
+            </div>
+        </div>
+
+        <!-- Step 1 -->
+        <div class="step-card bg-white rounded-xl p-6 mb-6 shadow-sm border-l-4 border-blue-500">
+            <div class="flex items-start gap-4">
+                <div class="flex-shrink-0 w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 font-bold">1</div>
+                <div class="flex-1">
+                    <h3 class="text-lg font-semibold mb-3">Google Cloud Console 프로젝트 생성</h3>
+
+                    <div class="bg-gray-50 rounded-lg p-4 mb-4">
+                        <p class="text-sm text-gray-600 mb-3">Google Cloud Console에 접속하세요:</p>
+                        <a href="https://console.cloud.google.com/" target="_blank"
+                           class="inline-flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+                            </svg>
+                            Google Cloud Console 열기
+                        </a>
+                    </div>
+
+                    <div class="space-y-3">
+                        <div class="flex items-start gap-2">
+                            <span class="text-blue-500 mt-1">1.</span>
+                            <p>상단의 프로젝트 선택 드롭다운 클릭 → <strong>"새 프로젝트"</strong> 선택</p>
+                        </div>
+                        <div class="flex items-start gap-2">
+                            <span class="text-blue-500 mt-1">2.</span>
+                            <div>
+                                <p class="mb-2">프로젝트 이름 입력:</p>
+                                <div class="flex items-center gap-2">
+                                    <code class="bg-white px-3 py-1 rounded border text-sm flex-1">chohopark-admin</code>
+                                    <button onclick="copyText('chohopark-admin')" class="copy-btn text-blue-600 hover:text-blue-800 text-sm">복사</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex items-start gap-2">
+                            <span class="text-blue-500 mt-1">3.</span>
+                            <p><strong>"만들기"</strong> 버튼 클릭</p>
+                        </div>
+                    </div>
+
+                    <div class="bg-amber-50 border border-amber-200 rounded-lg p-4 mt-4">
+                        <p class="text-amber-800 text-sm flex items-start gap-2">
+                            <span class="text-amber-500">⚠️</span>
+                            <span>프로젝트 생성 후 해당 프로젝트가 선택되어 있는지 상단에서 확인하세요</span>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 2 -->
+        <div class="step-card bg-white rounded-xl p-6 mb-6 shadow-sm border-l-4 border-green-500">
+            <div class="flex items-start gap-4">
+                <div class="flex-shrink-0 w-10 h-10 bg-green-100 rounded-full flex items-center justify-center text-green-600 font-bold">2</div>
+                <div class="flex-1">
+                    <h3 class="text-lg font-semibold mb-3">Google Analytics Data API 활성화</h3>
+
+                    <div class="bg-gray-50 rounded-lg p-4 mb-4">
+                        <p class="text-sm text-gray-600 mb-3">아래 링크를 클릭하여 API를 활성화하세요:</p>
+                        <a href="https://console.cloud.google.com/apis/library/analyticsdata.googleapis.com" target="_blank"
+                           class="inline-flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+                            </svg>
+                            Google Analytics Data API 페이지 열기
+                        </a>
+                    </div>
+
+                    <div class="space-y-3">
+                        <div class="flex items-start gap-2">
+                            <span class="text-green-500 mt-1">1.</span>
+                            <p>API 페이지에서 <strong>"사용"</strong> 또는 <strong>"ENABLE"</strong> 버튼 클릭</p>
+                        </div>
+                        <div class="flex items-start gap-2">
+                            <span class="text-green-500 mt-1">2.</span>
+                            <p>활성화 완료되면 "API 사용 설정됨" 메시지 확인</p>
+                        </div>
+                    </div>
+
+                    <div class="bg-green-50 border border-green-200 rounded-lg p-4 mt-4">
+                        <p class="text-green-800 text-sm flex items-start gap-2">
+                            <span class="text-green-500">✓</span>
+                            <span>이미 활성화되어 있다면 "관리" 버튼이 표시됩니다. 다음 단계로 진행하세요.</span>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 3 -->
+        <div class="step-card bg-white rounded-xl p-6 mb-6 shadow-sm border-l-4 border-purple-500">
+            <div class="flex items-start gap-4">
+                <div class="flex-shrink-0 w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center text-purple-600 font-bold">3</div>
+                <div class="flex-1">
+                    <h3 class="text-lg font-semibold mb-3">서비스 계정 생성 및 키 다운로드</h3>
+
+                    <div class="bg-gray-50 rounded-lg p-4 mb-4">
+                        <p class="text-sm text-gray-600 mb-3">서비스 계정 페이지로 이동:</p>
+                        <a href="https://console.cloud.google.com/iam-admin/serviceaccounts" target="_blank"
+                           class="inline-flex items-center gap-2 bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+                            </svg>
+                            서비스 계정 페이지 열기
+                        </a>
+                    </div>
+
+                    <div class="space-y-4">
+                        <!-- 서비스 계정 생성 -->
+                        <div class="bg-gray-50 rounded-lg p-4">
+                            <h4 class="font-medium mb-3 text-gray-700">📌 서비스 계정 생성</h4>
+                            <div class="space-y-3">
+                                <div class="flex items-start gap-2">
+                                    <span class="text-purple-500 mt-1">1.</span>
+                                    <p>상단의 <strong>"+ 서비스 계정 만들기"</strong> 클릭</p>
+                                </div>
+                                <div class="flex items-start gap-2">
+                                    <span class="text-purple-500 mt-1">2.</span>
+                                    <div>
+                                        <p class="mb-2">서비스 계정 이름 입력:</p>
+                                        <div class="flex items-center gap-2">
+                                            <code class="bg-white px-3 py-1 rounded border text-sm flex-1">ga4-reader</code>
+                                            <button onclick="copyText('ga4-reader')" class="copy-btn text-blue-600 hover:text-blue-800 text-sm">복사</button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="flex items-start gap-2">
+                                    <span class="text-purple-500 mt-1">3.</span>
+                                    <p><strong>"만들고 계속하기"</strong> 클릭</p>
+                                </div>
+                                <div class="flex items-start gap-2">
+                                    <span class="text-purple-500 mt-1">4.</span>
+                                    <p>역할 선택은 건너뛰기 (선택사항) → <strong>"완료"</strong> 클릭</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 키 생성 -->
+                        <div class="bg-gray-50 rounded-lg p-4">
+                            <h4 class="font-medium mb-3 text-gray-700">📌 JSON 키 다운로드</h4>
+                            <div class="space-y-3">
+                                <div class="flex items-start gap-2">
+                                    <span class="text-purple-500 mt-1">1.</span>
+                                    <p>생성된 서비스 계정(ga4-reader@...) 클릭</p>
+                                </div>
+                                <div class="flex items-start gap-2">
+                                    <span class="text-purple-500 mt-1">2.</span>
+                                    <p><strong>"키"</strong> 탭 클릭</p>
+                                </div>
+                                <div class="flex items-start gap-2">
+                                    <span class="text-purple-500 mt-1">3.</span>
+                                    <p><strong>"키 추가"</strong> → <strong>"새 키 만들기"</strong> 클릭</p>
+                                </div>
+                                <div class="flex items-start gap-2">
+                                    <span class="text-purple-500 mt-1">4.</span>
+                                    <p>키 유형: <strong>"JSON"</strong> 선택 → <strong>"만들기"</strong> 클릭</p>
+                                </div>
+                                <div class="flex items-start gap-2">
+                                    <span class="text-purple-500 mt-1">5.</span>
+                                    <p>JSON 파일이 자동으로 다운로드됩니다</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-red-50 border border-red-200 rounded-lg p-4">
+                            <h4 class="font-medium mb-2 text-red-700">⚠️ 중요: JSON 키 파일 보안</h4>
+                            <ul class="text-sm text-red-800 space-y-1">
+                                <li>• 이 파일은 <strong>절대 공개 저장소에 업로드하지 마세요</strong></li>
+                                <li>• 안전한 위치에 보관하세요</li>
+                                <li>• 다운로드한 파일 이름 예: <code class="bg-white px-1 rounded">chohopark-admin-xxxx.json</code></li>
+                            </ul>
+                        </div>
+
+                        <!-- client_email 확인 -->
+                        <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                            <h4 class="font-medium mb-2 text-blue-700">💡 client_email 확인하기</h4>
+                            <p class="text-sm text-blue-800 mb-2">
+                                다운로드한 JSON 파일을 열어 <strong>client_email</strong> 값을 복사해두세요.
+                            </p>
+                            <div class="bg-white rounded-lg p-3 border">
+                                <p class="text-xs text-gray-500 mb-2">예시 형식:</p>
+                                <code class="text-xs text-gray-700 break-all">ga4-reader@chohopark-admin.iam.gserviceaccount.com</code>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 4 -->
+        <div class="step-card bg-white rounded-xl p-6 mb-6 shadow-sm border-l-4 border-amber-500">
+            <div class="flex items-start gap-4">
+                <div class="flex-shrink-0 w-10 h-10 bg-amber-100 rounded-full flex items-center justify-center text-amber-600 font-bold">4</div>
+                <div class="flex-1">
+                    <h3 class="text-lg font-semibold mb-3">GA4 속성에 서비스 계정 추가</h3>
+
+                    <div class="bg-gray-50 rounded-lg p-4 mb-4">
+                        <p class="text-sm text-gray-600 mb-3">Google Analytics로 이동:</p>
+                        <a href="https://analytics.google.com/" target="_blank"
+                           class="inline-flex items-center gap-2 bg-amber-500 text-white px-4 py-2 rounded-lg hover:bg-amber-600 transition">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+                            </svg>
+                            Google Analytics 열기
+                        </a>
+                    </div>
+
+                    <div class="space-y-3">
+                        <div class="flex items-start gap-2">
+                            <span class="text-amber-500 mt-1">1.</span>
+                            <p>왼쪽 하단 <strong>⚙️ 관리</strong> 클릭</p>
+                        </div>
+                        <div class="flex items-start gap-2">
+                            <span class="text-amber-500 mt-1">2.</span>
+                            <p><strong>"계정 액세스 관리"</strong> 클릭 (계정 열 아래)</p>
+                        </div>
+                        <div class="flex items-start gap-2">
+                            <span class="text-amber-500 mt-1">3.</span>
+                            <p>오른쪽 상단 <strong>"+"</strong> → <strong>"사용자 추가"</strong> 클릭</p>
+                        </div>
+                        <div class="flex items-start gap-2">
+                            <span class="text-amber-500 mt-1">4.</span>
+                            <div>
+                                <p class="mb-2">이메일 주소에 <strong>client_email</strong> 값 붙여넣기:</p>
+                                <div class="bg-white rounded-lg p-3 border">
+                                    <input type="text" id="clientEmailInput" placeholder="ga4-reader@project-id.iam.gserviceaccount.com"
+                                           class="w-full px-3 py-2 border rounded focus:ring-2 focus:ring-amber-500 focus:border-amber-500 text-sm font-mono">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex items-start gap-2">
+                            <span class="text-amber-500 mt-1">5.</span>
+                            <p>역할: <strong>"뷰어"</strong> 선택 (읽기 전용이면 충분)</p>
+                        </div>
+                        <div class="flex items-start gap-2">
+                            <span class="text-amber-500 mt-1">6.</span>
+                            <p><strong>"추가"</strong> 버튼 클릭</p>
+                        </div>
+                    </div>
+
+                    <div class="bg-amber-50 border border-amber-200 rounded-lg p-4 mt-4">
+                        <h4 class="font-medium mb-2 text-amber-700">📌 GA4 속성 ID 확인</h4>
+                        <p class="text-sm text-amber-800 mb-2">
+                            관리 → 속성 설정 → <strong>속성 ID</strong> 확인 (숫자만 있는 ID)
+                        </p>
+                        <div class="flex items-center gap-2 mt-2">
+                            <span class="text-gray-500 text-sm">속성 ID:</span>
+                            <input type="text" id="propertyIdInput" placeholder="123456789"
+                                   class="flex-1 px-3 py-1 border rounded text-sm font-mono">
+                            <button onclick="copyPropertyId()" class="copy-btn text-blue-600 hover:text-blue-800 text-sm">복사</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 5 -->
+        <div class="step-card bg-white rounded-xl p-6 mb-6 shadow-sm border-l-4 border-teal-500">
+            <div class="flex items-start gap-4">
+                <div class="flex-shrink-0 w-10 h-10 bg-teal-100 rounded-full flex items-center justify-center text-teal-600 font-bold">5</div>
+                <div class="flex-1">
+                    <h3 class="text-lg font-semibold mb-3">환경변수 설정 (저에게 전달)</h3>
+
+                    <p class="text-gray-600 mb-4">아래 정보를 저에게 알려주시면 관리자 대시보드에 연동해드립니다.</p>
+
+                    <div class="space-y-4">
+                        <!-- GA4 Property ID -->
+                        <div class="bg-gray-50 rounded-lg p-4">
+                            <h4 class="font-medium mb-2 text-gray-700">1. GA4 속성 ID</h4>
+                            <input type="text" id="envPropertyId" placeholder="123456789"
+                                   class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 font-mono">
+                            <p class="text-xs text-gray-500 mt-1">관리 → 속성 설정에서 확인 (숫자만)</p>
+                        </div>
+
+                        <!-- Service Account JSON -->
+                        <div class="bg-gray-50 rounded-lg p-4">
+                            <h4 class="font-medium mb-2 text-gray-700">2. 서비스 계정 JSON 내용</h4>
+                            <p class="text-sm text-gray-600 mb-2">다운로드한 JSON 파일의 내용을 붙여넣으세요:</p>
+                            <textarea id="serviceAccountJson"
+                                      placeholder='{
+  "type": "service_account",
+  "project_id": "...",
+  "private_key_id": "...",
+  "private_key": "-----BEGIN PRIVATE KEY-----\n...",
+  "client_email": "...",
+  "client_id": "...",
+  ...
+}'
+                                      class="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 font-mono text-xs h-48 resize-none"
+                                      oninput="validateJson(this)"></textarea>
+                            <p id="jsonValidation" class="text-xs mt-1 text-gray-500">JSON 형식을 확인합니다</p>
+                        </div>
+                    </div>
+
+                    <div class="bg-teal-50 border border-teal-200 rounded-lg p-4 mt-4">
+                        <h4 class="font-medium mb-2 text-teal-700">✅ 설정 완료 후</h4>
+                        <p class="text-sm text-teal-800">
+                            위 정보를 전달해주시면:<br>
+                            1. 환경변수 설정<br>
+                            2. GA4 Data API 연동 코드 추가<br>
+                            3. 대시보드에 통계 페이지 생성
+                        </p>
+                    </div>
+
+                    <div class="bg-red-50 border border-red-200 rounded-lg p-4 mt-4">
+                        <h4 class="font-medium mb-2 text-red-700">⚠️ 보안 주의사항</h4>
+                        <ul class="text-sm text-red-800 space-y-1">
+                            <li>• JSON 키는 환경변수로만 저장 (코드에 직접 넣지 않음)</li>
+                            <li>• .env.local 파일은 .gitignore에 포함되어야 함</li>
+                            <li>• Vercel 환경변수에 안전하게 저장됨</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 필요한 환경변수 목록 -->
+        <div class="bg-gray-800 text-white rounded-xl p-6 mb-6">
+            <h3 class="font-semibold mb-4 flex items-center gap-2">
+                <span>🔧</span> 최종 환경변수 (참고용)
+            </h3>
+            <div class="bg-gray-900 rounded-lg p-4 font-mono text-sm overflow-x-auto">
+                <pre class="text-green-400"># GA4 Data API
+GA4_PROPERTY_ID=<span class="text-yellow-400">속성ID</span>
+GOOGLE_SERVICE_ACCOUNT_EMAIL=<span class="text-yellow-400">client_email값</span>
+GOOGLE_PRIVATE_KEY=<span class="text-yellow-400">private_key값</span></pre>
+            </div>
+            <p class="text-gray-400 text-xs mt-3">※ 이 값들은 제가 설정해드립니다</p>
+        </div>
+
+        <!-- Help Section -->
+        <div class="bg-gray-100 rounded-xl p-6">
+            <h3 class="font-semibold mb-4 flex items-center gap-2">
+                <span>📚</span> 참고 자료
+            </h3>
+            <div class="space-y-2 text-sm">
+                <a href="https://developers.google.com/analytics/devguides/reporting/data/v1" target="_blank"
+                   class="flex items-center gap-2 text-blue-600 hover:text-blue-800">
+                    <span>→</span> Google Analytics Data API 공식 문서
+                </a>
+                <a href="https://console.cloud.google.com/apis/library/analyticsdata.googleapis.com" target="_blank"
+                   class="flex items-center gap-2 text-blue-600 hover:text-blue-800">
+                    <span>→</span> Google Analytics Data API 활성화 페이지
+                </a>
+                <a href="https://www.heropy.dev/p/wc7QvJ" target="_blank"
+                   class="flex items-center gap-2 text-blue-600 hover:text-blue-800">
+                    <span>→</span> GA4 Query Explorer와 Google Analytics Data API 활용하기
+                </a>
+                <a href="https://support.google.com/analytics/answer/1008004?hl=ko" target="_blank"
+                   class="flex items-center gap-2 text-blue-600 hover:text-blue-800">
+                    <span>→</span> Google 애널리틱스 API 공식 안내
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div id="toast" class="fixed bottom-4 right-4 bg-gray-800 text-white px-4 py-2 rounded-lg shadow-lg transform translate-y-20 opacity-0 transition-all duration-300">
+        복사되었습니다!
+    </div>
+
+    <script>
+        function copyText(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                showToast('복사되었습니다!');
+            });
+        }
+
+        function copyPropertyId() {
+            const id = document.getElementById('propertyIdInput').value;
+            if (id) {
+                navigator.clipboard.writeText(id).then(() => {
+                    showToast('속성 ID가 복사되었습니다!');
+                });
+            }
+        }
+
+        function validateJson(textarea) {
+            const value = textarea.value.trim();
+            const validation = document.getElementById('jsonValidation');
+
+            if (!value) {
+                validation.textContent = 'JSON 형식을 확인합니다';
+                validation.className = 'text-xs mt-1 text-gray-500';
+                return;
+            }
+
+            try {
+                const json = JSON.parse(value);
+                if (json.type === 'service_account' && json.client_email && json.private_key) {
+                    validation.textContent = '✓ 올바른 서비스 계정 JSON입니다';
+                    validation.className = 'text-xs mt-1 text-green-600';
+                } else {
+                    validation.textContent = '⚠️ 서비스 계정 JSON이 아닌 것 같습니다';
+                    validation.className = 'text-xs mt-1 text-amber-500';
+                }
+            } catch (e) {
+                validation.textContent = '❌ JSON 형식이 올바르지 않습니다';
+                validation.className = 'text-xs mt-1 text-red-500';
+            }
+        }
+
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            setTimeout(() => {
+                toast.classList.add('translate-y-20', 'opacity-0');
+            }, 2000);
+        }
+
+        // 체크리스트 상태 저장
+        document.querySelectorAll('input[type="checkbox"]').forEach((checkbox, index) => {
+            const key = `ga4-api-guide-check-${index}`;
+            checkbox.checked = localStorage.getItem(key) === 'true';
+            checkbox.addEventListener('change', () => {
+                localStorage.setItem(key, checkbox.checked);
+            });
+        });
+    </script>
+</body>
+</html>

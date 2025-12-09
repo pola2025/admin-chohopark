@@ -1,5 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { supabaseAdmin } from '@/lib/supabase'
+import { ReservationCalendar } from '@/components/dashboard/ReservationCalendar'
 
 async function getStats() {
   const today = new Date().toISOString().split('T')[0]
@@ -52,14 +53,19 @@ async function getStats() {
 }
 
 async function getUpcomingReservations() {
-  const today = new Date().toISOString().split('T')[0]
+  const today = new Date()
+  const todayStr = today.toISOString().split('T')[0]
+
+  // 이번 달 말일까지
+  const endOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0)
+  const endOfMonthStr = endOfMonth.toISOString().split('T')[0]
 
   const { data } = await supabaseAdmin
     .from('reservations')
     .select('*')
-    .gte('use_date', today)
+    .gte('use_date', todayStr)
+    .lte('use_date', endOfMonthStr)
     .order('use_date', { ascending: true })
-    .limit(5)
 
   return data || []
 }
@@ -76,20 +82,8 @@ export default async function DashboardPage() {
     { title: '견적 문의', value: stats.newInquiries, icon: '📩', color: 'bg-pink-50 text-pink-700' },
   ]
 
-  const productTypeLabels: Record<string, string> = {
-    overnight: '1박2일 워크샵',
-    daytrip: '당일 야유회',
-    training: '2박3일 수련회',
-  }
-
-  const paymentStatusLabels: Record<string, { label: string; color: string }> = {
-    pending: { label: '미결제', color: 'bg-amber-100 text-amber-700' },
-    partial: { label: '부분결제', color: 'bg-blue-100 text-blue-700' },
-    completed: { label: '완료', color: 'bg-emerald-100 text-emerald-700' },
-  }
-
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 pb-[300px]">
       {/* Stats */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
         {statCards.map((stat) => (
@@ -105,46 +99,13 @@ export default async function DashboardPage() {
         ))}
       </div>
 
-      {/* Upcoming Reservations */}
+      {/* Upcoming Reservations - Calendar View */}
       <Card>
         <CardHeader>
           <CardTitle className="text-lg">다가오는 예약</CardTitle>
         </CardHeader>
         <CardContent>
-          {upcomingReservations.length === 0 ? (
-            <p className="text-gray-500 text-center py-8">예정된 예약이 없습니다</p>
-          ) : (
-            <div className="space-y-3">
-              {upcomingReservations.map((reservation) => (
-                <div
-                  key={reservation.id}
-                  className="flex items-center justify-between p-4 bg-gray-50 rounded-lg"
-                >
-                  <div className="flex items-center gap-4">
-                    <div className="text-center">
-                      <p className="text-sm text-gray-500">
-                        {new Date(reservation.use_date).toLocaleDateString('ko-KR', { month: 'short' })}
-                      </p>
-                      <p className="text-xl font-bold">
-                        {new Date(reservation.use_date).getDate()}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="font-medium">{reservation.company_name || reservation.manager_name}</p>
-                      <p className="text-sm text-gray-500">
-                        {productTypeLabels[reservation.product_type] || reservation.product_type} · {reservation.people_count}명
-                      </p>
-                    </div>
-                  </div>
-                  <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${
-                    paymentStatusLabels[reservation.payment_status]?.color || 'bg-gray-100 text-gray-700'
-                  }`}>
-                    {paymentStatusLabels[reservation.payment_status]?.label || reservation.payment_status}
-                  </span>
-                </div>
-              ))}
-            </div>
-          )}
+          <ReservationCalendar reservations={upcomingReservations} />
         </CardContent>
       </Card>
     </div>

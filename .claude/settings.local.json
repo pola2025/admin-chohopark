@@ -18,7 +18,19 @@
       "Bash(git push:*)",
       "Bash(npx vercel logs:*)",
       "Bash(npx vercel inspect:*)",
-      "Bash(npx vercel --prod)"
+      "Bash(npx vercel --prod)",
+      "Bash(npx vercel link:*)",
+      "Bash(npx vercel --prod --yes)",
+      "Bash(npm install:*)",
+      "mcp__playwright__playwright_console_logs",
+      "mcp__playwright__playwright_close",
+      "mcp__playwright__playwright_get_visible_text",
+      "Bash(npx tsx:*)",
+      "Bash(ls:*)",
+      "Bash(npx vercel env:*)",
+      "mcp__playwright__playwright_evaluate",
+      "Bash(git commit -m \"$(cat <<''EOF''\nfix: 도메인 chorigol.net으로 수정 및 GA4 ID 업데이트\n\n- SITE_CONFIG.url: chohopark.com → chorigol.net\n- GA_MEASUREMENT_ID: G-P63CJMK6LB\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>\nEOF\n)\")",
+      "Bash(curl:*)"
     ]
   }
 }

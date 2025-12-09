@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Google Search Console 설정 가이드 - chorigol.net</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .copy-btn:active { transform: scale(0.95); }
+        .step-card { transition: all 0.2s ease; }
+        .step-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <div class="max-w-4xl mx-auto px-4 py-8">
+        <!-- Header -->
+        <div class="bg-gradient-to-r from-green-600 to-teal-600 rounded-2xl p-8 text-white mb-8">
+            <div class="flex items-center gap-3 mb-4">
+                <svg class="w-10 h-10" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
+                </svg>
+                <h1 class="text-2xl font-bold">Google Search Console 설정 가이드</h1>
+            </div>
+            <p class="text-green-100">chorigol.net 사이트를 Google 검색에 등록하고 사이트맵 제출하기</p>
+            <p class="text-sm text-green-200 mt-2">최종 업데이트: 2025년 12월</p>
+        </div>
+
+        <!-- Progress Checklist -->
+        <div class="bg-white rounded-xl p-6 mb-8 shadow-sm">
+            <h2 class="text-lg font-semibold mb-4 flex items-center gap-2">
+                <span class="text-green-500">✓</span> 진행 상황 체크리스트
+            </h2>
+            <div class="space-y-3">
+                <label class="flex items-center gap-3 cursor-pointer">
+                    <input type="checkbox" id="check1" class="w-5 h-5 rounded border-gray-300 text-green-500 focus:ring-green-500">
+                    <span>Step 1: Google Search Console 접속 및 속성 추가</span>
+                </label>
+                <label class="flex items-center gap-3 cursor-pointer">
+                    <input type="checkbox" id="check2" class="w-5 h-5 rounded border-gray-300 text-green-500 focus:ring-green-500">
+                    <span>Step 2: 사이트 소유권 확인</span>
+                </label>
+                <label class="flex items-center gap-3 cursor-pointer">
+                    <input type="checkbox" id="check3" class="w-5 h-5 rounded border-gray-300 text-green-500 focus:ring-green-500">
+                    <span>Step 3: 사이트맵 제출</span>
+                </label>
+                <label class="flex items-center gap-3 cursor-pointer">
+                    <input type="checkbox" id="check4" class="w-5 h-5 rounded border-gray-300 text-green-500 focus:ring-green-500">
+                    <span>Step 4: 색인 생성 요청</span>
+                </label>
+            </div>
+        </div>
+
+        <!-- Step 1 -->
+        <div class="step-card bg-white rounded-xl p-6 mb-6 shadow-sm border-l-4 border-blue-500">
+            <div class="flex items-start gap-4">
+                <div class="flex-shrink-0 w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 font-bold">1</div>
+                <div class="flex-1">
+                    <h3 class="text-lg font-semibold mb-3">Google Search Console 접속 및 속성 추가</h3>
+
+                    <div class="bg-gray-50 rounded-lg p-4 mb-4">
+                        <p class="text-sm text-gray-600 mb-3">아래 버튼을 클릭하여 Google Search Console에 접속하세요:</p>
+                        <a href="https://search.google.com/search-console" target="_blank"
+                           class="inline-flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+                            </svg>
+                            Google Search Console 열기
+                        </a>
+                    </div>
+
+                    <div class="space-y-3">
+                        <div class="flex items-start gap-2">
+                            <span class="text-blue-500 mt-1">▸</span>
+                            <p>Google 계정으로 로그인합니다</p>
+                        </div>
+                        <div class="flex items-start gap-2">
+                            <span class="text-blue-500 mt-1">▸</span>
+                            <p><strong>"시작하기"</strong> 또는 <strong>"속성 추가"</strong> 버튼을 클릭합니다</p>
+                        </div>
+                    </div>
+
+                    <div class="bg-amber-50 border border-amber-200 rounded-lg p-4 mt-4">
+                        <h4 class="font-medium mb-2 text-amber-700">📌 속성 유형 선택</h4>
+                        <div class="space-y-3">
+                            <div class="bg-white rounded-lg p-3 border-2 border-green-400">
+                                <p class="font-medium text-green-700 mb-1">✓ URL 접두어 (권장)</p>
+                                <div class="flex items-center gap-2 mt-2">
+                                    <code class="bg-gray-100 px-3 py-1 rounded text-sm flex-1">https://chorigol.net</code>
+                                    <button onclick="copyText('https://chorigol.net')" class="copy-btn text-blue-600 hover:text-blue-800 text-sm px-2">복사</button>
+                                </div>
+                                <p class="text-xs text-gray-500 mt-2">설정이 간단하고 즉시 사용 가능</p>
+                            </div>
+                            <div class="bg-white rounded-lg p-3 border border-gray-200">
+                                <p class="font-medium text-gray-700 mb-1">도메인 (고급)</p>
+                                <p class="text-xs text-gray-500">DNS 인증 필요, 모든 하위 도메인 포함</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 2 -->
+        <div class="step-card bg-white rounded-xl p-6 mb-6 shadow-sm border-l-4 border-green-500">
+            <div class="flex items-start gap-4">
+                <div class="flex-shrink-0 w-10 h-10 bg-green-100 rounded-full flex items-center justify-center text-green-600 font-bold">2</div>
+                <div class="flex-1">
+                    <h3 class="text-lg font-semibold mb-3">사이트 소유권 확인</h3>
+
+                    <p class="text-gray-600 mb-4">URL 접두어로 등록하면 소유권 확인 화면이 나타납니다. 아래 방법 중 하나를 선택하세요.</p>
+
+                    <!-- 방법 1: HTML 태그 -->
+                    <div class="bg-green-50 border border-green-200 rounded-lg p-4 mb-4">
+                        <h4 class="font-medium mb-3 text-green-700">🏆 방법 1: HTML 태그 (가장 쉬움)</h4>
+                        <div class="space-y-3">
+                            <div class="flex items-start gap-2">
+                                <span class="text-green-500 mt-1">1.</span>
+                                <p>"HTML 태그" 옵션을 클릭합니다</p>
+                            </div>
+                            <div class="flex items-start gap-2">
+                                <span class="text-green-500 mt-1">2.</span>
+                                <p>표시되는 메타 태그를 복사합니다</p>
+                            </div>
+                            <div class="bg-white rounded-lg p-3 border">
+                                <p class="text-xs text-gray-500 mb-2">예시 형식:</p>
+                                <code class="text-xs text-gray-700 break-all">&lt;meta name="google-site-verification" content="xxxxxxxx" /&gt;</code>
+                            </div>
+                            <div class="flex items-start gap-2">
+                                <span class="text-green-500 mt-1">3.</span>
+                                <p>복사한 메타 태그를 저에게 알려주세요</p>
+                            </div>
+                            <div class="flex items-start gap-2">
+                                <span class="text-green-500 mt-1">4.</span>
+                                <p>웹사이트 &lt;head&gt; 섹션에 추가 후 배포합니다</p>
+                            </div>
+                            <div class="flex items-start gap-2">
+                                <span class="text-green-500 mt-1">5.</span>
+                                <p>"확인" 버튼을 클릭합니다</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 방법 2: Google Analytics -->
+                    <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+                        <h4 class="font-medium mb-3 text-blue-700">📊 방법 2: Google Analytics (GA4 설치됨)</h4>
+                        <div class="space-y-3">
+                            <div class="flex items-start gap-2">
+                                <span class="text-blue-500 mt-1">1.</span>
+                                <p>"Google 애널리틱스" 옵션을 클릭합니다</p>
+                            </div>
+                            <div class="flex items-start gap-2">
+                                <span class="text-blue-500 mt-1">2.</span>
+                                <p>GA4가 이미 설치되어 있으면 자동으로 확인됩니다</p>
+                            </div>
+                        </div>
+                        <p class="text-xs text-blue-600 mt-3">※ 이미 GA4 (G-P63CJMK6LB)가 설치되어 있으므로 이 방법이 가장 빠를 수 있습니다</p>
+                    </div>
+
+                    <!-- 방법 3: HTML 파일 -->
+                    <div class="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                        <h4 class="font-medium mb-3 text-gray-700">📄 방법 3: HTML 파일 업로드</h4>
+                        <div class="space-y-2 text-sm text-gray-600">
+                            <p>1. 제공되는 HTML 파일을 다운로드</p>
+                            <p>2. 웹사이트 루트 디렉토리에 업로드</p>
+                            <p>3. 배포 후 확인 버튼 클릭</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 3 -->
+        <div class="step-card bg-white rounded-xl p-6 mb-6 shadow-sm border-l-4 border-purple-500">
+            <div class="flex items-start gap-4">
+                <div class="flex-shrink-0 w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center text-purple-600 font-bold">3</div>
+                <div class="flex-1">
+                    <h3 class="text-lg font-semibold mb-3">사이트맵 제출</h3>
+
+                    <div class="space-y-4">
+                        <div class="bg-gray-50 rounded-lg p-4">
+                            <h4 class="font-medium mb-3 text-gray-700">📌 사이트맵 제출 방법</h4>
+                            <div class="space-y-3">
+                                <div class="flex items-start gap-2">
+                                    <span class="text-purple-500 mt-1">1.</span>
+                                    <p>왼쪽 메뉴에서 <strong>색인 생성</strong> → <strong>Sitemaps</strong> 클릭</p>
+                                </div>
+                                <div class="flex items-start gap-2">
+                                    <span class="text-purple-500 mt-1">2.</span>
+                                    <div>
+                                        <p class="mb-2">"새 사이트맵 추가" 입력란에 아래 URL을 입력합니다:</p>
+                                        <div class="flex items-center gap-2">
+                                            <code class="bg-white px-3 py-2 rounded border text-sm flex-1 font-mono">sitemap.xml</code>
+                                            <button onclick="copyText('sitemap.xml')" class="copy-btn text-blue-600 hover:text-blue-800 text-sm px-2">복사</button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="flex items-start gap-2">
+                                    <span class="text-purple-500 mt-1">3.</span>
+                                    <p><strong>"제출"</strong> 버튼을 클릭합니다</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-purple-50 border border-purple-200 rounded-lg p-4">
+                            <h4 class="font-medium mb-2 text-purple-700">🔗 사이트맵 URL</h4>
+                            <div class="flex items-center gap-2">
+                                <code class="bg-white px-3 py-2 rounded border text-sm flex-1 font-mono">https://chorigol.net/sitemap.xml</code>
+                                <button onclick="copyText('https://chorigol.net/sitemap.xml')" class="copy-btn text-blue-600 hover:text-blue-800 text-sm px-2">복사</button>
+                            </div>
+                            <a href="https://chorigol.net/sitemap.xml" target="_blank" class="text-purple-600 hover:text-purple-800 text-sm mt-2 inline-block">
+                                → 사이트맵 확인하기 (새 탭)
+                            </a>
+                        </div>
+
+                        <div class="bg-green-50 border border-green-200 rounded-lg p-4">
+                            <h4 class="font-medium mb-2 text-green-700">✅ 제출 후 상태 확인</h4>
+                            <div class="space-y-2 text-sm text-green-800">
+                                <p>• <strong>성공</strong>: 초록색 체크 표시</p>
+                                <p>• <strong>대기 중</strong>: 처리에 며칠 소요될 수 있음</p>
+                                <p>• <strong>오류</strong>: 오류 메시지 확인 후 수정</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 4 -->
+        <div class="step-card bg-white rounded-xl p-6 mb-6 shadow-sm border-l-4 border-amber-500">
+            <div class="flex items-start gap-4">
+                <div class="flex-shrink-0 w-10 h-10 bg-amber-100 rounded-full flex items-center justify-center text-amber-600 font-bold">4</div>
+                <div class="flex-1">
+                    <h3 class="text-lg font-semibold mb-3">색인 생성 요청 (선택사항)</h3>
+
+                    <p class="text-gray-600 mb-4">중요한 페이지를 빠르게 Google에 등록하려면 개별 URL 색인 요청을 할 수 있습니다.</p>
+
+                    <div class="bg-gray-50 rounded-lg p-4 mb-4">
+                        <h4 class="font-medium mb-3 text-gray-700">📌 색인 요청 방법</h4>
+                        <div class="space-y-3">
+                            <div class="flex items-start gap-2">
+                                <span class="text-amber-500 mt-1">1.</span>
+                                <p>Search Console 상단 검색창에 URL 입력</p>
+                            </div>
+                            <div class="flex items-start gap-2">
+                                <span class="text-amber-500 mt-1">2.</span>
+                                <p>Enter 눌러 URL 검사 실행</p>
+                            </div>
+                            <div class="flex items-start gap-2">
+                                <span class="text-amber-500 mt-1">3.</span>
+                                <p><strong>"색인 생성 요청"</strong> 버튼 클릭</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-amber-50 border border-amber-200 rounded-lg p-4">
+                        <h4 class="font-medium mb-3 text-amber-700">🎯 색인 요청 추천 URL</h4>
+                        <div class="space-y-2">
+                            <div class="flex items-center gap-2">
+                                <code class="bg-white px-2 py-1 rounded border text-xs flex-1">https://chorigol.net</code>
+                                <button onclick="copyText('https://chorigol.net')" class="copy-btn text-blue-600 text-xs">복사</button>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <code class="bg-white px-2 py-1 rounded border text-xs flex-1">https://chorigol.net/booking</code>
+                                <button onclick="copyText('https://chorigol.net/booking')" class="copy-btn text-blue-600 text-xs">복사</button>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <code class="bg-white px-2 py-1 rounded border text-xs flex-1">https://chorigol.net/about</code>
+                                <button onclick="copyText('https://chorigol.net/about')" class="copy-btn text-blue-600 text-xs">복사</button>
+                            </div>
+                        </div>
+                        <p class="text-xs text-amber-600 mt-3">※ 하루 색인 요청 횟수에 제한이 있습니다 (약 10-20회)</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Important Notes -->
+        <div class="bg-blue-50 rounded-xl p-6 mb-6">
+            <h3 class="font-semibold mb-4 flex items-center gap-2 text-blue-800">
+                <span>💡</span> 알아두면 좋은 정보
+            </h3>
+            <div class="space-y-3 text-sm text-blue-800">
+                <div class="flex items-start gap-2">
+                    <span>•</span>
+                    <p><strong>색인 생성 시간</strong>: 사이트맵 제출 후 Google이 크롤링하는 데 며칠에서 몇 주가 소요될 수 있습니다</p>
+                </div>
+                <div class="flex items-start gap-2">
+                    <span>•</span>
+                    <p><strong>검색 결과 반영</strong>: 색인 생성 후 실제 검색 결과에 나타나기까지 추가 시간이 필요합니다</p>
+                </div>
+                <div class="flex items-start gap-2">
+                    <span>•</span>
+                    <p><strong>정기 확인</strong>: Search Console에서 오류, 경고 메시지를 주기적으로 확인하세요</p>
+                </div>
+                <div class="flex items-start gap-2">
+                    <span>•</span>
+                    <p><strong>사이트맵 자동 업데이트</strong>: Next.js의 sitemap.ts가 자동으로 최신 상태를 유지합니다</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Meta Tag Input Section -->
+        <div class="bg-white rounded-xl p-6 mb-6 shadow-sm border-2 border-dashed border-gray-300">
+            <h3 class="font-semibold mb-4 flex items-center gap-2">
+                <span>📋</span> 소유권 확인용 메타 태그 입력
+            </h3>
+            <p class="text-sm text-gray-600 mb-4">HTML 태그 방식으로 소유권 확인 시, 아래에 메타 태그를 붙여넣어 주세요:</p>
+            <textarea id="metaTagInput"
+                      placeholder='<meta name="google-site-verification" content="xxxxxxxx" />'
+                      class="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 font-mono text-sm h-24 resize-none"
+                      oninput="validateMetaTag(this)"></textarea>
+            <p id="metaValidation" class="text-xs mt-2 text-gray-500">메타 태그를 붙여넣으면 자동으로 확인됩니다</p>
+            <button onclick="copyMetaTag()"
+                    class="mt-3 bg-gray-800 text-white px-4 py-2 rounded-lg hover:bg-gray-900 transition text-sm">
+                입력한 태그 복사
+            </button>
+        </div>
+
+        <!-- Help Section -->
+        <div class="bg-gray-100 rounded-xl p-6">
+            <h3 class="font-semibold mb-4 flex items-center gap-2">
+                <span>📚</span> 참고 자료
+            </h3>
+            <div class="space-y-2 text-sm">
+                <a href="https://support.google.com/webmasters/answer/9008080?hl=ko" target="_blank"
+                   class="flex items-center gap-2 text-blue-600 hover:text-blue-800">
+                    <span>→</span> Google 공식: 사이트 소유권 확인
+                </a>
+                <a href="https://support.google.com/webmasters/answer/10267942?hl=ko" target="_blank"
+                   class="flex items-center gap-2 text-blue-600 hover:text-blue-800">
+                    <span>→</span> Google 공식: Search Console 시작하기
+                </a>
+                <a href="https://developers.google.com/search/docs/crawling-indexing/sitemaps/build-sitemap" target="_blank"
+                   class="flex items-center gap-2 text-blue-600 hover:text-blue-800">
+                    <span>→</span> Google 공식: 사이트맵 만들기 및 제출
+                </a>
+                <a href="https://developers.google.com/search/docs/monitor-debug/search-console-start" target="_blank"
+                   class="flex items-center gap-2 text-blue-600 hover:text-blue-800">
+                    <span>→</span> Google 공식: Search Console 사용 방법
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div id="toast" class="fixed bottom-4 right-4 bg-gray-800 text-white px-4 py-2 rounded-lg shadow-lg transform translate-y-20 opacity-0 transition-all duration-300">
+        복사되었습니다!
+    </div>
+
+    <script>
+        function copyText(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                showToast('복사되었습니다!');
+            });
+        }
+
+        function copyMetaTag() {
+            const tag = document.getElementById('metaTagInput').value;
+            if (tag.trim()) {
+                navigator.clipboard.writeText(tag).then(() => {
+                    showToast('메타 태그가 복사되었습니다!');
+                });
+            } else {
+                showToast('메타 태그를 먼저 입력해주세요');
+            }
+        }
+
+        function validateMetaTag(input) {
+            const value = input.value;
+            const validation = document.getElementById('metaValidation');
+
+            if (value.includes('google-site-verification') && value.includes('content=')) {
+                validation.textContent = '✓ 올바른 형식의 메타 태그입니다';
+                validation.className = 'text-xs mt-2 text-green-600';
+            } else if (value.length > 0) {
+                validation.textContent = 'google-site-verification 메타 태그를 붙여넣어 주세요';
+                validation.className = 'text-xs mt-2 text-amber-500';
+            } else {
+                validation.textContent = '메타 태그를 붙여넣으면 자동으로 확인됩니다';
+                validation.className = 'text-xs mt-2 text-gray-500';
+            }
+        }
+
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            setTimeout(() => {
+                toast.classList.add('translate-y-20', 'opacity-0');
+            }, 2000);
+        }
+
+        // 체크리스트 상태 저장
+        document.querySelectorAll('input[type="checkbox"]').forEach((checkbox, index) => {
+            const key = `gsc-guide-check-${index}`;
+            checkbox.checked = localStorage.getItem(key) === 'true';
+            checkbox.addEventListener('change', () => {
+                localStorage.setItem(key, checkbox.checked);
+            });
+        });
+    </script>
+</body>
+</html>

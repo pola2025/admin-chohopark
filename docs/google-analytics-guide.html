@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Google Analytics 4 설정 가이드 - 초호쉼터</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .copy-btn:active { transform: scale(0.95); }
+        .step-card { transition: all 0.2s ease; }
+        .step-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        .checked { background-color: #10B981 !important; border-color: #10B981 !important; }
+        .checked::after { content: '✓'; color: white; font-size: 12px; }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <div class="max-w-4xl mx-auto px-4 py-8">
+        <!-- Header -->
+        <div class="bg-gradient-to-r from-blue-600 to-indigo-600 rounded-2xl p-8 text-white mb-8">
+            <div class="flex items-center gap-3 mb-4">
+                <svg class="w-10 h-10" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M22.84 2.998c-.017-.08-.036-.16-.06-.237a3.093 3.093 0 0 0-.755-1.163A2.986 2.986 0 0 0 20.865 1H3.135c-.47 0-.93.112-1.345.33a2.991 2.991 0 0 0-1.16.598c-.33.282-.596.633-.775 1.028-.104.23-.18.473-.223.724L.001 12l8.39 9.676a2.048 2.048 0 0 0 1.544.696c.573 0 1.12-.241 1.508-.666l9.556-11.03 1.842-7.678z"/>
+                </svg>
+                <h1 class="text-2xl font-bold">Google Analytics 4 설정 가이드</h1>
+            </div>
+            <p class="text-blue-100">초호쉼터 홈페이지 방문자 통계 수집을 위한 GA4 설정 안내</p>
+            <p class="text-sm text-blue-200 mt-2">최종 업데이트: 2025년 12월</p>
+        </div>
+
+        <!-- Progress Checklist -->
+        <div class="bg-white rounded-xl p-6 mb-8 shadow-sm">
+            <h2 class="text-lg font-semibold mb-4 flex items-center gap-2">
+                <span class="text-green-500">✓</span> 진행 상황 체크리스트
+            </h2>
+            <div class="space-y-3">
+                <label class="flex items-center gap-3 cursor-pointer">
+                    <input type="checkbox" id="check1" class="w-5 h-5 rounded border-gray-300 text-green-500 focus:ring-green-500">
+                    <span>Step 1: Google Analytics 계정 생성</span>
+                </label>
+                <label class="flex items-center gap-3 cursor-pointer">
+                    <input type="checkbox" id="check2" class="w-5 h-5 rounded border-gray-300 text-green-500 focus:ring-green-500">
+                    <span>Step 2: 속성(Property) 생성</span>
+                </label>
+                <label class="flex items-center gap-3 cursor-pointer">
+                    <input type="checkbox" id="check3" class="w-5 h-5 rounded border-gray-300 text-green-500 focus:ring-green-500">
+                    <span>Step 3: 데이터 스트림 생성 및 측정 ID 복사</span>
+                </label>
+                <label class="flex items-center gap-3 cursor-pointer">
+                    <input type="checkbox" id="check4" class="w-5 h-5 rounded border-gray-300 text-green-500 focus:ring-green-500">
+                    <span>Step 4: 측정 ID 전달</span>
+                </label>
+            </div>
+        </div>
+
+        <!-- Step 1 -->
+        <div class="step-card bg-white rounded-xl p-6 mb-6 shadow-sm border-l-4 border-blue-500">
+            <div class="flex items-start gap-4">
+                <div class="flex-shrink-0 w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 font-bold">1</div>
+                <div class="flex-1">
+                    <h3 class="text-lg font-semibold mb-3">Google Analytics 접속 및 계정 생성</h3>
+
+                    <div class="bg-gray-50 rounded-lg p-4 mb-4">
+                        <p class="text-sm text-gray-600 mb-3">아래 버튼을 클릭하여 Google Analytics에 접속하세요:</p>
+                        <a href="https://analytics.google.com/" target="_blank"
+                           class="inline-flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+                            </svg>
+                            Google Analytics 열기
+                        </a>
+                    </div>
+
+                    <div class="space-y-3">
+                        <div class="flex items-start gap-2">
+                            <span class="text-blue-500 mt-1">▸</span>
+                            <p>Google 계정으로 로그인합니다 (Gmail 계정 사용)</p>
+                        </div>
+                        <div class="flex items-start gap-2">
+                            <span class="text-blue-500 mt-1">▸</span>
+                            <p><strong>"측정 시작"</strong> 버튼을 클릭합니다</p>
+                        </div>
+                        <div class="flex items-start gap-2">
+                            <span class="text-blue-500 mt-1">▸</span>
+                            <p>이미 계정이 있다면 왼쪽 하단 <strong>⚙️ 관리</strong> → <strong>+ 계정 만들기</strong></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 2 -->
+        <div class="step-card bg-white rounded-xl p-6 mb-6 shadow-sm border-l-4 border-green-500">
+            <div class="flex items-start gap-4">
+                <div class="flex-shrink-0 w-10 h-10 bg-green-100 rounded-full flex items-center justify-center text-green-600 font-bold">2</div>
+                <div class="flex-1">
+                    <h3 class="text-lg font-semibold mb-3">계정 및 속성 설정</h3>
+
+                    <div class="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-4">
+                        <p class="text-amber-800 text-sm flex items-start gap-2">
+                            <span class="text-amber-500">⚠️</span>
+                            <span>아래 정보를 그대로 입력하시면 됩니다</span>
+                        </p>
+                    </div>
+
+                    <div class="space-y-4">
+                        <!-- 계정 설정 -->
+                        <div class="bg-gray-50 rounded-lg p-4">
+                            <h4 class="font-medium mb-3 text-gray-700">📌 계정 설정</h4>
+                            <div class="flex items-center gap-2 mb-2">
+                                <span class="text-gray-500 text-sm w-20">계정 이름:</span>
+                                <code class="bg-white px-3 py-1 rounded border text-sm flex-1">초호쉼터</code>
+                                <button onclick="copyText('초호쉼터')" class="copy-btn text-blue-600 hover:text-blue-800 text-sm">복사</button>
+                            </div>
+                            <p class="text-xs text-gray-500 mt-2">※ 데이터 공유 설정은 기본값 그대로 두고 <strong>"다음"</strong> 클릭</p>
+                        </div>
+
+                        <!-- 속성 설정 -->
+                        <div class="bg-gray-50 rounded-lg p-4">
+                            <h4 class="font-medium mb-3 text-gray-700">📌 속성 설정</h4>
+                            <div class="space-y-2">
+                                <div class="flex items-center gap-2">
+                                    <span class="text-gray-500 text-sm w-20">속성 이름:</span>
+                                    <code class="bg-white px-3 py-1 rounded border text-sm flex-1">초호쉼터 홈페이지</code>
+                                    <button onclick="copyText('초호쉼터 홈페이지')" class="copy-btn text-blue-600 hover:text-blue-800 text-sm">복사</button>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <span class="text-gray-500 text-sm w-20">시간대:</span>
+                                    <code class="bg-white px-3 py-1 rounded border text-sm flex-1">대한민국 (GMT+09:00)</code>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <span class="text-gray-500 text-sm w-20">통화:</span>
+                                    <code class="bg-white px-3 py-1 rounded border text-sm flex-1">대한민국 원 (₩)</code>
+                                </div>
+                            </div>
+                            <p class="text-xs text-gray-500 mt-2">※ <strong>"다음"</strong> 클릭</p>
+                        </div>
+
+                        <!-- 비즈니스 세부정보 -->
+                        <div class="bg-gray-50 rounded-lg p-4">
+                            <h4 class="font-medium mb-3 text-gray-700">📌 비즈니스 세부정보</h4>
+                            <div class="space-y-2">
+                                <div class="flex items-center gap-2">
+                                    <span class="text-gray-500 text-sm w-20">업종:</span>
+                                    <code class="bg-white px-3 py-1 rounded border text-sm flex-1">여행 (Travel)</code>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <span class="text-gray-500 text-sm w-20">규모:</span>
+                                    <code class="bg-white px-3 py-1 rounded border text-sm flex-1">소규모 (1~10명)</code>
+                                </div>
+                            </div>
+                            <p class="text-xs text-gray-500 mt-2">※ <strong>"다음"</strong> 클릭</p>
+                        </div>
+
+                        <!-- 비즈니스 목표 -->
+                        <div class="bg-gray-50 rounded-lg p-4">
+                            <h4 class="font-medium mb-3 text-gray-700">📌 비즈니스 목표</h4>
+                            <p class="text-sm text-gray-600 mb-2">아래 항목들을 선택하세요:</p>
+                            <div class="space-y-1">
+                                <label class="flex items-center gap-2 text-sm">
+                                    <input type="checkbox" checked disabled class="rounded">
+                                    <span>리드 생성 (Generate leads)</span>
+                                </label>
+                                <label class="flex items-center gap-2 text-sm">
+                                    <input type="checkbox" checked disabled class="rounded">
+                                    <span>사용자 행동 분석 (Examine user behavior)</span>
+                                </label>
+                            </div>
+                            <p class="text-xs text-gray-500 mt-2">※ <strong>"만들기"</strong> 클릭 후 약관에 동의</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 3 -->
+        <div class="step-card bg-white rounded-xl p-6 mb-6 shadow-sm border-l-4 border-purple-500">
+            <div class="flex items-start gap-4">
+                <div class="flex-shrink-0 w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center text-purple-600 font-bold">3</div>
+                <div class="flex-1">
+                    <h3 class="text-lg font-semibold mb-3">데이터 스트림 생성 및 측정 ID 복사</h3>
+
+                    <div class="space-y-4">
+                        <div class="bg-gray-50 rounded-lg p-4">
+                            <h4 class="font-medium mb-3 text-gray-700">📌 데이터 수집 시작</h4>
+                            <div class="space-y-3">
+                                <div class="flex items-start gap-2">
+                                    <span class="text-purple-500 mt-1">1.</span>
+                                    <p>"데이터 수집 시작" 화면에서 <strong>"웹"</strong>을 선택합니다</p>
+                                </div>
+                                <div class="flex items-start gap-2">
+                                    <span class="text-purple-500 mt-1">2.</span>
+                                    <div>
+                                        <p class="mb-2">웹사이트 URL을 입력합니다:</p>
+                                        <div class="flex items-center gap-2">
+                                            <code class="bg-white px-3 py-1 rounded border text-sm flex-1">https://chohopark.com</code>
+                                            <button onclick="copyText('https://chohopark.com')" class="copy-btn text-blue-600 hover:text-blue-800 text-sm">복사</button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="flex items-start gap-2">
+                                    <span class="text-purple-500 mt-1">3.</span>
+                                    <div>
+                                        <p class="mb-2">스트림 이름을 입력합니다:</p>
+                                        <div class="flex items-center gap-2">
+                                            <code class="bg-white px-3 py-1 rounded border text-sm flex-1">초호쉼터 웹사이트</code>
+                                            <button onclick="copyText('초호쉼터 웹사이트')" class="copy-btn text-blue-600 hover:text-blue-800 text-sm">복사</button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="flex items-start gap-2">
+                                    <span class="text-purple-500 mt-1">4.</span>
+                                    <p><strong>"향상된 측정"</strong>이 켜져 있는지 확인 (기본 켜짐)</p>
+                                </div>
+                                <div class="flex items-start gap-2">
+                                    <span class="text-purple-500 mt-1">5.</span>
+                                    <p><strong>"스트림 만들기"</strong> 버튼 클릭</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-green-50 border border-green-200 rounded-lg p-4">
+                            <h4 class="font-medium mb-3 text-green-700">🎯 측정 ID 복사하기</h4>
+                            <p class="text-sm text-green-800 mb-3">
+                                스트림이 생성되면 <strong>"측정 ID"</strong>가 표시됩니다.<br>
+                                <strong>G-</strong>로 시작하는 코드입니다 (예: G-ABC123XYZ)
+                            </p>
+                            <div class="bg-white rounded-lg p-4 border border-green-300">
+                                <p class="text-xs text-gray-500 mb-2">측정 ID 위치:</p>
+                                <p class="text-sm">웹 스트림 세부정보 → <strong>측정 ID</strong> 옆 복사 아이콘 클릭</p>
+                            </div>
+                        </div>
+
+                        <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                            <h4 class="font-medium mb-2 text-blue-700">💡 나중에 측정 ID 찾는 방법</h4>
+                            <p class="text-sm text-blue-800">
+                                <strong>관리(⚙️)</strong> → <strong>데이터 수집 및 수정</strong> → <strong>데이터 스트림</strong> → 스트림 클릭 → 측정 ID 확인
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 4 -->
+        <div class="step-card bg-white rounded-xl p-6 mb-6 shadow-sm border-l-4 border-amber-500">
+            <div class="flex items-start gap-4">
+                <div class="flex-shrink-0 w-10 h-10 bg-amber-100 rounded-full flex items-center justify-center text-amber-600 font-bold">4</div>
+                <div class="flex-1">
+                    <h3 class="text-lg font-semibold mb-3">측정 ID 입력</h3>
+
+                    <div class="bg-gray-50 rounded-lg p-4 mb-4">
+                        <p class="text-sm text-gray-600 mb-3">복사한 측정 ID를 아래에 입력해주세요:</p>
+                        <div class="flex gap-2">
+                            <input type="text" id="measurementId" placeholder="G-XXXXXXXXXX"
+                                   class="flex-1 px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 font-mono text-lg"
+                                   pattern="G-[A-Z0-9]+"
+                                   oninput="validateId(this)">
+                            <button onclick="copyMeasurementId()"
+                                    class="copy-btn bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition font-medium">
+                                복사
+                            </button>
+                        </div>
+                        <p id="idValidation" class="text-xs mt-2 text-gray-500">G-로 시작하는 측정 ID를 입력하세요</p>
+                    </div>
+
+                    <div class="bg-emerald-50 border border-emerald-200 rounded-lg p-4">
+                        <h4 class="font-medium mb-2 text-emerald-700">✅ 완료 후 알려주세요!</h4>
+                        <p class="text-sm text-emerald-800">
+                            측정 ID를 입력하시면 홈페이지에 Google Analytics를 연동하고,<br>
+                            관리자 대시보드에서 방문자 통계를 확인할 수 있게 설정해드립니다.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Help Section -->
+        <div class="bg-gray-100 rounded-xl p-6">
+            <h3 class="font-semibold mb-4 flex items-center gap-2">
+                <span>📚</span> 참고 자료
+            </h3>
+            <div class="space-y-2 text-sm">
+                <a href="https://support.google.com/analytics/answer/9304153?hl=ko" target="_blank"
+                   class="flex items-center gap-2 text-blue-600 hover:text-blue-800">
+                    <span>→</span> Google 공식: 웹사이트 및 앱용 애널리틱스 설정
+                </a>
+                <a href="https://support.google.com/analytics/answer/12270356?hl=ko" target="_blank"
+                   class="flex items-center gap-2 text-blue-600 hover:text-blue-800">
+                    <span>→</span> Google 공식: 측정 ID 안내
+                </a>
+                <a href="https://support.google.com/analytics/answer/9539598?hl=ko" target="_blank"
+                   class="flex items-center gap-2 text-blue-600 hover:text-blue-800">
+                    <span>→</span> Google 공식: Google 태그 ID 찾기
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div id="toast" class="fixed bottom-4 right-4 bg-gray-800 text-white px-4 py-2 rounded-lg shadow-lg transform translate-y-20 opacity-0 transition-all duration-300">
+        복사되었습니다!
+    </div>
+
+    <script>
+        function copyText(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                showToast('복사되었습니다!');
+            });
+        }
+
+        function copyMeasurementId() {
+            const id = document.getElementById('measurementId').value;
+            if (id && id.startsWith('G-')) {
+                navigator.clipboard.writeText(id).then(() => {
+                    showToast('측정 ID가 복사되었습니다!');
+                });
+            } else {
+                showToast('올바른 측정 ID를 입력해주세요');
+            }
+        }
+
+        function validateId(input) {
+            const value = input.value.toUpperCase();
+            input.value = value;
+            const validation = document.getElementById('idValidation');
+
+            if (value.startsWith('G-') && value.length > 3) {
+                validation.textContent = '✓ 올바른 형식입니다';
+                validation.className = 'text-xs mt-2 text-green-600';
+            } else if (value.length > 0) {
+                validation.textContent = 'G-로 시작하는 측정 ID를 입력하세요';
+                validation.className = 'text-xs mt-2 text-red-500';
+            } else {
+                validation.textContent = 'G-로 시작하는 측정 ID를 입력하세요';
+                validation.className = 'text-xs mt-2 text-gray-500';
+            }
+        }
+
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            setTimeout(() => {
+                toast.classList.add('translate-y-20', 'opacity-0');
+            }, 2000);
+        }
+
+        // 체크리스트 상태 저장
+        document.querySelectorAll('input[type="checkbox"]').forEach((checkbox, index) => {
+            const key = `ga-guide-check-${index}`;
+            checkbox.checked = localStorage.getItem(key) === 'true';
+            checkbox.addEventListener('change', () => {
+                localStorage.setItem(key, checkbox.checked);
+            });
+        });
+    </script>
+</body>
+</html>
