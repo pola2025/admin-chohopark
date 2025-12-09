@@ -1,10 +1,12 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { supabaseAdmin } from '@/lib/supabase'
 import { ReservationCalendar } from '@/components/dashboard/ReservationCalendar'
+import { getKSTTodayString, getKSTDateAfterDays, getKSTTodayStart, getKSTTodayEnd, getKSTEndOfMonth } from '@/lib/kst'
 
 async function getStats() {
-  const today = new Date().toISOString().split('T')[0]
-  const weekLater = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
+  // KST 기준 날짜 계산
+  const today = getKSTTodayString()
+  const weekLater = getKSTDateAfterDays(7)
 
   // 오늘 예약
   const { count: todayCount } = await supabaseAdmin
@@ -25,11 +27,9 @@ async function getStats() {
     .select('*', { count: 'exact', head: true })
     .eq('payment_status', 'pending')
 
-  // 오늘 발송 예정 SMS
-  const todayStart = new Date()
-  todayStart.setHours(0, 0, 0, 0)
-  const todayEnd = new Date()
-  todayEnd.setHours(23, 59, 59, 999)
+  // 오늘 발송 예정 SMS (KST 기준)
+  const todayStart = getKSTTodayStart()
+  const todayEnd = getKSTTodayEnd()
 
   const { count: smsCount } = await supabaseAdmin
     .from('sms_schedules')
@@ -53,12 +53,9 @@ async function getStats() {
 }
 
 async function getUpcomingReservations() {
-  const today = new Date()
-  const todayStr = today.toISOString().split('T')[0]
-
-  // 이번 달 말일까지
-  const endOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0)
-  const endOfMonthStr = endOfMonth.toISOString().split('T')[0]
+  // KST 기준 날짜 계산
+  const todayStr = getKSTTodayString()
+  const endOfMonthStr = getKSTEndOfMonth()
 
   const { data } = await supabaseAdmin
     .from('reservations')
@@ -84,6 +81,11 @@ export default async function DashboardPage() {
 
   return (
     <div className="space-y-6 pb-[300px]">
+      {/* KST 시간 안내 */}
+      <div className="text-xs text-gray-500 text-right">
+        모든 시간은 한국 표준시(KST) 기준입니다.
+      </div>
+
       {/* Stats */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
         {statCards.map((stat) => (

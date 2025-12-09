@@ -3,6 +3,10 @@
 import { useState, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
+import { Label } from '@/components/ui/label'
 import {
   Table,
   TableBody,
@@ -18,7 +22,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { Label } from '@/components/ui/label'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog'
 import { toast } from 'sonner'
 
 interface SmsSchedule {
@@ -54,6 +64,12 @@ export default function SmsPage() {
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState('all')
 
+  // 테스트 발송 관련 상태
+  const [testDialogOpen, setTestDialogOpen] = useState(false)
+  const [testPhone, setTestPhone] = useState('')
+  const [testMessage, setTestMessage] = useState('[초호쉼터] 테스트 메시지입니다.')
+  const [sending, setSending] = useState(false)
+
   const fetchSchedules = async () => {
     setLoading(true)
     try {
@@ -74,9 +90,112 @@ export default function SmsPage() {
     fetchSchedules()
   }, [filter])
 
+  // 테스트 발송 함수
+  const handleTestSend = async () => {
+    if (!testPhone.trim()) {
+      toast.error('전화번호를 입력해주세요')
+      return
+    }
+    if (!testMessage.trim()) {
+      toast.error('메시지를 입력해주세요')
+      return
+    }
+
+    setSending(true)
+    try {
+      const res = await fetch('/api/sms/test', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          phone: testPhone,
+          message: testMessage,
+        }),
+      })
+
+      const data = await res.json()
+
+      if (res.ok && data.success) {
+        toast.success('테스트 SMS가 발송되었습니다')
+        setTestDialogOpen(false)
+        setTestPhone('')
+        setTestMessage('[초호쉼터] 테스트 메시지입니다.')
+      } else {
+        toast.error(data.error || 'SMS 발송 실패')
+      }
+    } catch {
+      toast.error('SMS 발송 중 오류가 발생했습니다')
+    } finally {
+      setSending(false)
+    }
+  }
+
+  // 시간을 KST로 표시
+  const formatKSTTime = (dateStr: string) => {
+    const date = new Date(dateStr)
+    return date.toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' })
+  }
+
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold">SMS 관리</h1>
+      <div className="flex justify-between items-center">
+        <h1 className="text-2xl font-bold">SMS 관리</h1>
+        <Dialog open={testDialogOpen} onOpenChange={setTestDialogOpen}>
+          <DialogTrigger asChild>
+            <Button variant="outline">
+              📤 테스트 발송
+            </Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>SMS 테스트 발송</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+              <div className="space-y-2">
+                <Label htmlFor="test-phone">수신 전화번호</Label>
+                <Input
+                  id="test-phone"
+                  placeholder="010-1234-5678"
+                  value={testPhone}
+                  onChange={(e) => setTestPhone(e.target.value)}
+                />
+                <p className="text-xs text-gray-500">
+                  실제로 SMS가 발송됩니다. 본인 번호를 입력해주세요.
+                </p>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="test-message">메시지 내용</Label>
+                <Textarea
+                  id="test-message"
+                  rows={5}
+                  value={testMessage}
+                  onChange={(e) => setTestMessage(e.target.value)}
+                  className="font-mono text-sm"
+                />
+                <p className="text-xs text-gray-500">
+                  {testMessage.length} / 90자 (90자 초과 시 LMS로 발송)
+                </p>
+              </div>
+              <div className="flex justify-end gap-2">
+                <Button variant="outline" onClick={() => setTestDialogOpen(false)}>
+                  취소
+                </Button>
+                <Button onClick={handleTestSend} disabled={sending}>
+                  {sending ? '발송 중...' : '발송'}
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+      </div>
+
+      {/* 현재 시간 (KST) 표시 */}
+      <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-sm text-blue-800">
+        <strong>⏰ 현재 시간 (KST):</strong>{' '}
+        {new Date().toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' })}
+        <span className="ml-4 text-blue-600">
+          모든 시간은 한국 표준시(KST) 기준입니다.
+        </span>
+      </div>
 
       {/* Stats */}
       <div className="grid grid-cols-3 gap-4">
@@ -122,6 +241,9 @@ export default function SmsPage() {
                 <SelectItem value="failed">실패</SelectItem>
               </SelectContent>
             </Select>
+            <Button variant="outline" size="sm" onClick={fetchSchedules}>
+              🔄 새로고침
+            </Button>
           </div>
         </CardContent>
       </Card>
@@ -140,19 +262,19 @@ export default function SmsPage() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>예정 시간</TableHead>
+                  <TableHead>예정 시간 (KST)</TableHead>
                   <TableHead>유형</TableHead>
                   <TableHead>수신자</TableHead>
                   <TableHead>연락처</TableHead>
                   <TableHead>상태</TableHead>
-                  <TableHead>발송 시간</TableHead>
+                  <TableHead>발송 시간 (KST)</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {schedules.map((s) => (
                   <TableRow key={s.id}>
                     <TableCell>
-                      {new Date(s.scheduled_at).toLocaleString('ko-KR')}
+                      {formatKSTTime(s.scheduled_at)}
                     </TableCell>
                     <TableCell>{SCHEDULE_TYPES[s.schedule_type] || s.schedule_type}</TableCell>
                     <TableCell>
@@ -165,7 +287,7 @@ export default function SmsPage() {
                       </Badge>
                     </TableCell>
                     <TableCell>
-                      {s.sent_at ? new Date(s.sent_at).toLocaleString('ko-KR') : '-'}
+                      {s.sent_at ? formatKSTTime(s.sent_at) : '-'}
                     </TableCell>
                   </TableRow>
                 ))}

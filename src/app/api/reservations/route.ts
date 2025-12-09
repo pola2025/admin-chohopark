@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase'
 import { getSession } from '@/lib/auth'
+import { calculateSmsScheduleTime } from '@/lib/kst'
 
 export async function GET(request: NextRequest) {
   const isAuthenticated = await getSession()
@@ -69,7 +70,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: error.message }, { status: 500 })
     }
 
-    // SMS 스케줄 자동 생성
+    // SMS 스케줄 자동 생성 (KST 기준)
     await createSmsSchedules(data.id, data.use_date, data.product_type)
 
     return NextResponse.json(data, { status: 201 })
@@ -78,44 +79,16 @@ export async function POST(request: NextRequest) {
   }
 }
 
+/**
+ * SMS 스케줄 생성 (KST 기준)
+ * 모든 시간은 KST 기준으로 계산되어 UTC로 저장됨
+ */
 async function createSmsSchedules(reservationId: number, useDate: string, productType: string) {
   const scheduleTypes = ['d_minus_1', 'd_day_morning', 'before_meal', 'before_close']
-  const date = new Date(useDate)
 
   const schedules = scheduleTypes.map((type) => {
-    let scheduledAt: Date
-
-    switch (type) {
-      case 'd_minus_1':
-        scheduledAt = new Date(date)
-        scheduledAt.setDate(scheduledAt.getDate() - 1)
-        scheduledAt.setHours(10, 0, 0, 0)
-        break
-      case 'd_day_morning':
-        scheduledAt = new Date(date)
-        scheduledAt.setHours(8, 0, 0, 0)
-        break
-      case 'before_meal':
-        scheduledAt = new Date(date)
-        scheduledAt.setHours(productType === 'daytrip' ? 11 : 17, 30, 0, 0)
-        break
-      case 'before_close':
-        if (productType === 'daytrip') {
-          scheduledAt = new Date(date)
-          scheduledAt.setHours(16, 0, 0, 0)
-        } else if (productType === 'training') {
-          scheduledAt = new Date(date)
-          scheduledAt.setDate(scheduledAt.getDate() + 2)
-          scheduledAt.setHours(10, 0, 0, 0)
-        } else {
-          scheduledAt = new Date(date)
-          scheduledAt.setDate(scheduledAt.getDate() + 1)
-          scheduledAt.setHours(10, 0, 0, 0)
-        }
-        break
-      default:
-        scheduledAt = new Date(date)
-    }
+    // KST 기준으로 스케줄 시간 계산
+    const scheduledAt = calculateSmsScheduleTime(useDate, type, productType)
 
     return {
       reservation_id: reservationId,
