@@ -4,7 +4,21 @@
       "Bash(npm run build:*)",
       "mcp__playwright__playwright_fill",
       "mcp__playwright__playwright_click",
-      "mcp__playwright__playwright_screenshot"
+      "mcp__playwright__playwright_screenshot",
+      "Bash(git stash:*)",
+      "mcp__playwright__playwright_navigate",
+      "WebSearch",
+      "Bash(npm view:*)",
+      "Bash(npm run dev:*)",
+      "WebFetch(domain:unit42.paloaltonetworks.com)",
+      "Bash(taskkill:*)",
+      "Bash(rm:*)",
+      "Bash(git add:*)",
+      "Bash(git commit -m \"$(cat <<''EOF''\nfix: Next.js 16 SSE 라우트 추가\n\nNext.js 16의 HMR이 Server-Sent Events 방식으로 변경되어\n/__server_sent_events__ 엔드포인트가 필요합니다.\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>\nEOF\n)\")",
+      "Bash(git push:*)",
+      "Bash(npx vercel logs:*)",
+      "Bash(npx vercel inspect:*)",
+      "Bash(npx vercel --prod)"
     ]
   }
 }
