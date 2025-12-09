@@ -89,6 +89,26 @@ export default function ReservationsPage() {
     setIsDialogOpen(true)
   }
 
+  // 결제 상태 토글
+  const togglePaymentStatus = async (reservation: Reservation) => {
+    const newStatus = reservation.payment_status === 'paid' ? 'pending' : 'paid'
+    try {
+      const res = await fetch(`/api/reservations/${reservation.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ payment_status: newStatus }),
+      })
+      if (res.ok) {
+        toast.success(newStatus === 'paid' ? '결제 완료 처리됨' : '미결제로 변경됨')
+        fetchReservations()
+      } else {
+        toast.error('상태 변경 실패')
+      }
+    } catch {
+      toast.error('상태 변경 중 오류 발생')
+    }
+  }
+
   const openNewDialog = () => {
     setEditingReservation(null)
     setIsDialogOpen(true)
@@ -202,9 +222,16 @@ export default function ReservationsPage() {
                       <TableCell>{r.phone}</TableCell>
                       <TableCell>{r.deposit_amount.toLocaleString()}원</TableCell>
                       <TableCell>
-                        <Badge className={PAYMENT_STATUS[r.payment_status]?.color}>
-                          {PAYMENT_STATUS[r.payment_status]?.label}
-                        </Badge>
+                        <button
+                          onClick={() => togglePaymentStatus(r)}
+                          className={`px-3 py-1 rounded-md text-sm font-medium transition-all duration-200 active:scale-95
+                            ${r.payment_status === 'paid'
+                              ? 'bg-emerald-500 text-white shadow hover:bg-blue-500 hover:shadow-xl hover:-translate-y-1'
+                              : 'bg-amber-100 text-amber-700 border border-amber-300 shadow hover:bg-blue-500 hover:text-white hover:border-blue-500 hover:shadow-xl hover:-translate-y-1'
+                            }`}
+                        >
+                          {r.payment_status === 'paid' ? '결제완료' : '미결제'}
+                        </button>
                       </TableCell>
                       <TableCell>
                         <div className="flex gap-2">
@@ -396,7 +423,18 @@ function ReservationForm({
           <Input
             id="phone"
             value={formData.phone}
-            onChange={(e) => setFormData(f => ({ ...f, phone: e.target.value }))}
+            onChange={(e) => {
+              // 숫자만 추출
+              const nums = e.target.value.replace(/\D/g, '')
+              // 010-0000-0000 형식으로 포맷
+              let formatted = nums
+              if (nums.length > 3 && nums.length <= 7) {
+                formatted = nums.slice(0, 3) + '-' + nums.slice(3)
+              } else if (nums.length > 7) {
+                formatted = nums.slice(0, 3) + '-' + nums.slice(3, 7) + '-' + nums.slice(7, 11)
+              }
+              setFormData(f => ({ ...f, phone: formatted }))
+            }}
             placeholder="010-1234-5678"
             required
           />

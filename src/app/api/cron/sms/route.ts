@@ -49,6 +49,15 @@ export async function POST(request: NextRequest) {
         continue
       }
 
+      // 미결제 상태면 발송하지 않음
+      if (reservation.payment_status !== 'paid') {
+        await supabaseAdmin
+          .from('sms_schedules')
+          .update({ status: 'skipped' })
+          .eq('id', schedule.id)
+        continue
+      }
+
       // Get message template
       const { data: template } = await supabaseAdmin
         .from('message_templates')
@@ -78,6 +87,8 @@ export async function POST(request: NextRequest) {
       const smsResult = await sendSms({
         to: reservation.phone,
         content: message,
+        companyName: reservation.company_name || reservation.manager_name,
+        scheduleType: schedule.schedule_type,
       })
 
       // Update schedule status

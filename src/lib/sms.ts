@@ -3,6 +3,30 @@ import crypto from 'crypto'
 interface SendSmsParams {
   to: string
   content: string
+  companyName?: string
+  scheduleType?: string
+}
+
+// 텔레그램 알림 발송
+async function sendTelegramNotification(message: string) {
+  const botToken = process.env.TELEGRAM_BOT_TOKEN
+  const chatId = process.env.TELEGRAM_CHAT_ID
+
+  if (!botToken || !chatId) return
+
+  try {
+    await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        chat_id: chatId,
+        text: message,
+        parse_mode: 'HTML',
+      }),
+    })
+  } catch (error) {
+    console.error('텔레그램 알림 실패:', error)
+  }
 }
 
 interface SmsResponse {
@@ -11,7 +35,7 @@ interface SmsResponse {
   error?: string
 }
 
-export async function sendSms({ to, content }: SendSmsParams): Promise<SmsResponse> {
+export async function sendSms({ to, content, companyName, scheduleType }: SendSmsParams): Promise<SmsResponse> {
   const accessKey = process.env.NCLOUD_ACCESS_KEY
   const secretKey = process.env.NCLOUD_SECRET_KEY
   const serviceId = process.env.NCLOUD_SERVICE_ID
@@ -32,8 +56,11 @@ export async function sendSms({ to, content }: SendSmsParams): Promise<SmsRespon
   hmac.update(message)
   const signature = hmac.digest('base64')
 
+  // 90자 초과 시 LMS로 자동 전환
+  const messageType = content.length > 90 ? 'LMS' : 'SMS'
+
   const body = {
-    type: 'SMS',
+    type: messageType,
     from: callingNumber,
     content,
     messages: [{ to: to.replace(/-/g, '') }],
@@ -54,6 +81,21 @@ export async function sendSms({ to, content }: SendSmsParams): Promise<SmsRespon
     const data = await response.json()
 
     if (response.ok) {
+      // 텔레그램 알림 발송
+      const scheduleLabels: Record<string, string> = {
+        d_minus_1: 'D-1 안내',
+        d_day_morning: '당일 아침',
+        before_meal: '식사 안내',
+        before_close: '퇴실 안내',
+      }
+      const typeLabel = scheduleType ? scheduleLabels[scheduleType] || scheduleType : ''
+      const telegramMsg = `✅ <b>SMS 발송 완료</b>\n\n` +
+        `수신자: ${companyName || to}\n` +
+        `연락처: ${to}\n` +
+        (typeLabel ? `유형: ${typeLabel}\n` : '') +
+        `발송유형: ${messageType}`
+      await sendTelegramNotification(telegramMsg)
+
       return { success: true, requestId: data.requestId }
     } else {
       return { success: false, error: data.error || 'SMS 발송 실패' }
