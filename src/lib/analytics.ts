@@ -1,4 +1,5 @@
 import { BetaAnalyticsDataClient } from '@google-analytics/data';
+import { GoogleAuth } from 'google-auth-library';
 
 // GA4 속성 ID
 const propertyId = process.env.GA4_PROPERTY_ID;
@@ -7,14 +8,13 @@ const propertyId = process.env.GA4_PROPERTY_ID;
 function normalizePrivateKey(key: string): string {
   // 다양한 형태의 \n을 실제 줄바꿈으로 변환
   return key
-    .replace(/\\\\n/g, '\n')  // \\n -> \n
-    .replace(/\\n/g, '\n')     // \n -> \n
-    .replace(/\r\n/g, '\n')    // CRLF -> LF
+    .split(String.raw`\n`).join('\n')  // 문자열 "\n"을 실제 줄바꿈으로
+    .replace(/\r\n/g, '\n')             // CRLF -> LF
     .trim();
 }
 
 // 서비스 계정 인증 설정
-function getCredentials() {
+function getCredentials(): { client_email: string; private_key: string } | undefined {
   // 방법 1: GOOGLE_APPLICATION_CREDENTIALS_JSON (JSON 전체)
   const jsonCredentials = process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON;
   if (jsonCredentials) {
@@ -24,35 +24,27 @@ function getCredentials() {
         parsed.private_key = normalizePrivateKey(parsed.private_key);
       }
       console.log('[GA4] Using GOOGLE_APPLICATION_CREDENTIALS_JSON');
-      console.log('[GA4] Private key starts with:', parsed.private_key?.substring(0, 50));
-      return parsed;
+      console.log('[GA4] client_email:', parsed.client_email);
+      console.log('[GA4] private_key length:', parsed.private_key?.length);
+      console.log('[GA4] private_key has real newlines:', parsed.private_key?.includes('\n'));
+      return {
+        client_email: parsed.client_email,
+        private_key: parsed.private_key,
+      };
     } catch (e) {
       console.error('Failed to parse GOOGLE_APPLICATION_CREDENTIALS_JSON:', e);
     }
   }
 
-  // 방법 2: Base64 인코딩된 키
-  const base64Key = process.env.GOOGLE_PRIVATE_KEY_BASE64;
-  if (base64Key) {
-    try {
-      const privateKey = normalizePrivateKey(Buffer.from(base64Key, 'base64').toString('utf-8'));
-      console.log('[GA4] Using GOOGLE_PRIVATE_KEY_BASE64');
-      return {
-        client_email: process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL,
-        private_key: privateKey,
-      };
-    } catch (e) {
-      console.error('Failed to decode GOOGLE_PRIVATE_KEY_BASE64:', e);
-    }
-  }
-
-  // 방법 3: 일반 private key
+  // 방법 2: 개별 환경변수
+  const email = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL;
   const key = process.env.GOOGLE_PRIVATE_KEY;
-  if (key) {
+  if (email && key) {
     const privateKey = normalizePrivateKey(key);
-    console.log('[GA4] Using GOOGLE_PRIVATE_KEY');
+    console.log('[GA4] Using individual env vars');
+    console.log('[GA4] private_key length:', privateKey.length);
     return {
-      client_email: process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL,
+      client_email: email,
       private_key: privateKey,
     };
   }
@@ -61,11 +53,27 @@ function getCredentials() {
   return undefined;
 }
 
-// 서비스 계정 인증
-const credentials = getCredentials();
-const analyticsDataClient = new BetaAnalyticsDataClient({
-  credentials: credentials,
-});
+// GoogleAuth를 사용한 인증
+function createAnalyticsClient() {
+  const credentials = getCredentials();
+
+  if (!credentials) {
+    console.error('[GA4] No credentials available');
+    return new BetaAnalyticsDataClient();
+  }
+
+  const auth = new GoogleAuth({
+    credentials: {
+      client_email: credentials.client_email,
+      private_key: credentials.private_key,
+    },
+    scopes: ['https://www.googleapis.com/auth/analytics.readonly'],
+  });
+
+  return new BetaAnalyticsDataClient({ auth });
+}
+
+const analyticsDataClient = createAnalyticsClient();
 
 export interface AnalyticsData {
   totalUsers: number;
