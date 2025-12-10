@@ -3,33 +3,53 @@ import { BetaAnalyticsDataClient } from '@google-analytics/data';
 // GA4 속성 ID
 const propertyId = process.env.GA4_PROPERTY_ID;
 
-// Private Key 처리
-// GOOGLE_PRIVATE_KEY_BASE64가 있으면 Base64 디코딩, 없으면 일반 처리
-function getPrivateKey(): string | undefined {
-  // Base64 인코딩된 키가 있으면 디코딩
+// 서비스 계정 인증 설정
+function getCredentials() {
+  // 방법 1: GOOGLE_APPLICATION_CREDENTIALS_JSON (JSON 전체)
+  const jsonCredentials = process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON;
+  if (jsonCredentials) {
+    try {
+      return JSON.parse(jsonCredentials);
+    } catch (e) {
+      console.error('Failed to parse GOOGLE_APPLICATION_CREDENTIALS_JSON:', e);
+    }
+  }
+
+  // 방법 2: Base64 인코딩된 키
   const base64Key = process.env.GOOGLE_PRIVATE_KEY_BASE64;
   if (base64Key) {
-    return Buffer.from(base64Key, 'base64').toString('utf-8');
+    try {
+      const privateKey = Buffer.from(base64Key, 'base64').toString('utf-8');
+      return {
+        client_email: process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL,
+        private_key: privateKey,
+      };
+    } catch (e) {
+      console.error('Failed to decode GOOGLE_PRIVATE_KEY_BASE64:', e);
+    }
   }
 
-  // 일반 키 처리
+  // 방법 3: 일반 private key
   const key = process.env.GOOGLE_PRIVATE_KEY;
-  if (!key) return undefined;
-
-  // 이미 실제 줄바꿈이 있으면 그대로 사용
-  if (key.includes('-----BEGIN PRIVATE KEY-----\n')) {
-    return key;
+  if (key) {
+    let privateKey = key;
+    // \n 문자열을 실제 줄바꿈으로 변환
+    if (!key.includes('-----BEGIN PRIVATE KEY-----\n')) {
+      privateKey = key.replace(/\\n/g, '\n');
+    }
+    return {
+      client_email: process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL,
+      private_key: privateKey,
+    };
   }
-  // \n 문자열을 실제 줄바꿈으로 변환
-  return key.replace(/\\n/g, '\n');
+
+  return undefined;
 }
 
 // 서비스 계정 인증
+const credentials = getCredentials();
 const analyticsDataClient = new BetaAnalyticsDataClient({
-  credentials: {
-    client_email: process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL,
-    private_key: getPrivateKey(),
-  },
+  credentials: credentials,
 });
 
 export interface AnalyticsData {
