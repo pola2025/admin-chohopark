@@ -3,6 +3,16 @@ import { BetaAnalyticsDataClient } from '@google-analytics/data';
 // GA4 속성 ID
 const propertyId = process.env.GA4_PROPERTY_ID;
 
+// Private key 변환 함수 - 모든 \n 변형을 실제 줄바꿈으로 변환
+function normalizePrivateKey(key: string): string {
+  // 다양한 형태의 \n을 실제 줄바꿈으로 변환
+  return key
+    .replace(/\\\\n/g, '\n')  // \\n -> \n
+    .replace(/\\n/g, '\n')     // \n -> \n
+    .replace(/\r\n/g, '\n')    // CRLF -> LF
+    .trim();
+}
+
 // 서비스 계정 인증 설정
 function getCredentials() {
   // 방법 1: GOOGLE_APPLICATION_CREDENTIALS_JSON (JSON 전체)
@@ -10,10 +20,11 @@ function getCredentials() {
   if (jsonCredentials) {
     try {
       const parsed = JSON.parse(jsonCredentials);
-      // private_key 내 \n 문자열을 실제 줄바꿈으로 변환
-      if (parsed.private_key && !parsed.private_key.includes('-----BEGIN PRIVATE KEY-----\n')) {
-        parsed.private_key = parsed.private_key.replace(/\\n/g, '\n');
+      if (parsed.private_key) {
+        parsed.private_key = normalizePrivateKey(parsed.private_key);
       }
+      console.log('[GA4] Using GOOGLE_APPLICATION_CREDENTIALS_JSON');
+      console.log('[GA4] Private key starts with:', parsed.private_key?.substring(0, 50));
       return parsed;
     } catch (e) {
       console.error('Failed to parse GOOGLE_APPLICATION_CREDENTIALS_JSON:', e);
@@ -24,7 +35,8 @@ function getCredentials() {
   const base64Key = process.env.GOOGLE_PRIVATE_KEY_BASE64;
   if (base64Key) {
     try {
-      const privateKey = Buffer.from(base64Key, 'base64').toString('utf-8');
+      const privateKey = normalizePrivateKey(Buffer.from(base64Key, 'base64').toString('utf-8'));
+      console.log('[GA4] Using GOOGLE_PRIVATE_KEY_BASE64');
       return {
         client_email: process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL,
         private_key: privateKey,
@@ -37,17 +49,15 @@ function getCredentials() {
   // 방법 3: 일반 private key
   const key = process.env.GOOGLE_PRIVATE_KEY;
   if (key) {
-    let privateKey = key;
-    // \n 문자열을 실제 줄바꿈으로 변환
-    if (!key.includes('-----BEGIN PRIVATE KEY-----\n')) {
-      privateKey = key.replace(/\\n/g, '\n');
-    }
+    const privateKey = normalizePrivateKey(key);
+    console.log('[GA4] Using GOOGLE_PRIVATE_KEY');
     return {
       client_email: process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL,
       private_key: privateKey,
     };
   }
 
+  console.log('[GA4] No credentials found');
   return undefined;
 }
 
