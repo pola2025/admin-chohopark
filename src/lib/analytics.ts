@@ -9,7 +9,12 @@ function getCredentials() {
   const jsonCredentials = process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON;
   if (jsonCredentials) {
     try {
-      return JSON.parse(jsonCredentials);
+      const parsed = JSON.parse(jsonCredentials);
+      // private_key 내 \n 문자열을 실제 줄바꿈으로 변환
+      if (parsed.private_key && !parsed.private_key.includes('-----BEGIN PRIVATE KEY-----\n')) {
+        parsed.private_key = parsed.private_key.replace(/\\n/g, '\n');
+      }
+      return parsed;
     } catch (e) {
       console.error('Failed to parse GOOGLE_APPLICATION_CREDENTIALS_JSON:', e);
     }
