@@ -19,13 +19,21 @@ jobs:
 
     steps:
       - name: Trigger SMS API
+        id: sms
         run: |
-          curl -X POST "${{ secrets.VERCEL_URL }}/api/cron/sms" \
+          HTTP_CODE=$(curl -s -o response.json -w "%{http_code}" \
+            -X POST "${{ secrets.VERCEL_URL }}/api/cron/sms" \
             -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
             -H "Content-Type: application/json" \
-            --fail-with-body \
-            --max-time 60
+            --max-time 60)
 
-      - name: Log result
-        if: always()
-        run: echo "SMS cron job completed at $(date)"
+          echo "HTTP Status: $HTTP_CODE"
+          cat response.json
+
+          # 500번대 에러만 실패로 처리 (발송 건 없음, 스킵은 정상 처리)
+          if [ "$HTTP_CODE" -ge 500 ]; then
+            echo "Server error occurred"
+            exit 1
+          fi
+
+          echo "SMS cron completed successfully (status: $HTTP_CODE)"
