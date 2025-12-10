@@ -12,8 +12,9 @@ export async function POST(request: NextRequest) {
   }
 
   const now = new Date()
-  const fiveMinutesAgo = new Date(now.getTime() - 5 * 60 * 1000)
-  const fiveMinutesLater = new Date(now.getTime() + 5 * 60 * 1000)
+  // GitHub Actions cron은 최대 10분 지연될 수 있으므로 ±15분 윈도우 사용
+  const fifteenMinutesAgo = new Date(now.getTime() - 15 * 60 * 1000)
+  const fifteenMinutesLater = new Date(now.getTime() + 15 * 60 * 1000)
 
   try {
     // Get pending SMS schedules within the time window
@@ -24,8 +25,8 @@ export async function POST(request: NextRequest) {
         reservation:reservations(*)
       `)
       .eq('status', 'pending')
-      .gte('scheduled_at', fiveMinutesAgo.toISOString())
-      .lte('scheduled_at', fiveMinutesLater.toISOString())
+      .gte('scheduled_at', fifteenMinutesAgo.toISOString())
+      .lte('scheduled_at', fifteenMinutesLater.toISOString())
 
     if (schedulesError) {
       throw schedulesError
@@ -49,7 +50,7 @@ export async function POST(request: NextRequest) {
         continue
       }
 
-      // 미결제 상태면 발송하지 않음
+      // 미결제 상태면 발송하지 않음 (주의: 'paid'가 아닌 'completed' 체크!)
       if (reservation.payment_status !== 'completed') {
         await supabaseAdmin
           .from('sms_schedules')
