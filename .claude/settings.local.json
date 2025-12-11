@@ -31,7 +31,20 @@
       "mcp__playwright__playwright_evaluate",
       "Bash(git commit -m \"$(cat <<''EOF''\nfix: 도메인 chorigol.net으로 수정 및 GA4 ID 업데이트\n\n- SITE_CONFIG.url: chohopark.com → chorigol.net\n- GA_MEASUREMENT_ID: G-P63CJMK6LB\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>\nEOF\n)\")",
       "Bash(curl:*)",
-      "Bash(git commit:*)"
+      "Bash(git commit:*)",
+      "Bash(npx vercel ls)",
+      "Bash(source .env.local)",
+      "Bash(cat:*)",
+      "Bash(CHAT_ID=\"-1002863320782\")",
+      "Bash(BOT_TOKEN=\"7947112373:AAEs5o3fcm0JoPewh7K5YTUwzq4poWw97pY\")",
+      "Bash(__NEW_LINE__ MESSAGE=\"🔔 *새로운 견적 문의*\n\n📦 *상품*: 당일 야유회\n👤 *담당자*: 송준영\n📞 *연락처*: 010-3880-7562\n📧 *이메일*: zzangblind@naver.com\n👥 *인원*: 10명\n\n⏰ 접수시간: 2025-12-10 14:18 (KST)\")",
+      "Bash(__NEW_LINE__ curl -s -X POST \"https://api.telegram.org/bot$BOT_TOKEN/sendMessage\" )",
+      "Bash(node -e \"\nconst https = require(''https'');\n\nconst data = JSON.stringify({\n  chat_id: ''-1002863320782'',\n  text: ''🔔 새로운 견적 문의\\n\\n📦 상품: 당일 야유회\\n👤 담당자: 송준영\\n📞 연락처: 010-3880-7562\\n📧 이메일: zzangblind@naver.com\\n👥 인원: 10명\\n\\n⏰ 접수시간: 2025-12-10 14:18 (KST)''\n});\n\nconst options = {\n  hostname: ''api.telegram.org'',\n  path: ''/bot7947112373:AAEs5o3fcm0JoPewh7K5YTUwzq4poWw97pY/sendMessage'',\n  method: ''POST'',\n  headers: {\n    ''Content-Type'': ''application/json'',\n    ''Content-Length'': Buffer.byteLength(data)\n  }\n};\n\nconst req = https.request(options, (res) => {\n  let body = '''';\n  res.on(''data'', (d) => body += d);\n  res.on(''end'', () => console.log(body));\n});\nreq.write(data);\nreq.end();\n\")",
+      "Bash(node:*)",
+      "Bash(vercel env:*)",
+      "Bash(gh run list:*)",
+      "Bash(gh workflow run:*)",
+      "Bash(gh run view:*)"
     ]
   }
 }
