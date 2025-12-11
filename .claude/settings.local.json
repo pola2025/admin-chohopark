@@ -35,7 +35,22 @@
       "Bash(vercel env:*)",
       "Bash(gh run list:*)",
       "Bash(gh workflow run:*)",
-      "Bash(gh run view:*)"
+      "Bash(gh run view:*)",
+      "Bash(railway add:*)",
+      "Bash(railway status:*)",
+      "Bash(railway service:*)",
+      "Bash(railway link --help:*)",
+      "Bash(railway link:*)",
+      "Bash(railway variables set:*)",
+      "Bash(railway variables --help:*)",
+      "Bash(railway up:*)",
+      "Bash(railway variables:*)",
+      "mcp__railway-mcp-server__list-projects",
+      "mcp__railway-mcp-server__list-services",
+      "mcp__railway-mcp-server__list-variables",
+      "mcp__railway-mcp-server__list-deployments",
+      "mcp__railway-mcp-server__set-variables",
+      "mcp__railway-mcp-server__deploy"
     ]
   }
 }

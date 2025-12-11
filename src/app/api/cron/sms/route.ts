@@ -2,6 +2,28 @@ import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase'
 import { sendSms, replaceTemplateVariables } from '@/lib/sms'
 
+// 텔레그램 알림 발송
+async function sendTelegramNotification(message: string) {
+  const botToken = process.env.TELEGRAM_BOT_TOKEN
+  const chatId = process.env.TELEGRAM_CHAT_ID
+
+  if (!botToken || !chatId) return
+
+  try {
+    await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        chat_id: chatId,
+        text: message,
+        parse_mode: 'HTML',
+      }),
+    })
+  } catch (error) {
+    console.error('텔레그램 알림 실패:', error)
+  }
+}
+
 export async function POST(request: NextRequest) {
   // Verify cron secret
   const authHeader = request.headers.get('authorization')
@@ -112,9 +134,38 @@ export async function POST(request: NextRequest) {
 
       results.push({
         scheduleId: schedule.id,
+        companyName: reservation.company_name || reservation.manager_name,
+        scheduleType: schedule.schedule_type,
         success: smsResult.success,
       })
     }
+
+    // Cron 실행 결과 텔레그램 알림
+    const successCount = results.filter(r => r.success).length
+    const failCount = results.filter(r => !r.success).length
+    const kstTime = new Date(now.getTime() + 9 * 60 * 60 * 1000).toLocaleString('ko-KR', { timeZone: 'UTC' })
+
+    const scheduleLabels: Record<string, string> = {
+      d_minus_7: 'D-7 사전안내',
+      d_minus_1: 'D-1 안내',
+      d_day_morning: '당일 아침',
+      before_meal: '식사 안내',
+      before_close: '퇴실 안내',
+    }
+
+    let telegramMsg = `🤖 <b>Railway Cron 실행 결과</b>\n\n`
+    telegramMsg += `⏰ 실행시간: ${kstTime}\n`
+    telegramMsg += `📊 처리: ${results.length}건 (성공 ${successCount}, 실패 ${failCount})\n`
+
+    if (results.length > 0) {
+      telegramMsg += `\n<b>상세내역:</b>\n`
+      for (const r of results) {
+        const typeLabel = scheduleLabels[r.scheduleType] || r.scheduleType
+        telegramMsg += `${r.success ? '✅' : '❌'} ${r.companyName} - ${typeLabel}\n`
+      }
+    }
+
+    await sendTelegramNotification(telegramMsg)
 
     return NextResponse.json({
       message: 'SMS processing completed',
@@ -123,6 +174,15 @@ export async function POST(request: NextRequest) {
     })
   } catch (error) {
     console.error('Cron SMS error:', error)
+
+    // 에러 발생 시 텔레그램 알림
+    const kstTime = new Date(Date.now() + 9 * 60 * 60 * 1000).toLocaleString('ko-KR', { timeZone: 'UTC' })
+    await sendTelegramNotification(
+      `❌ <b>Railway Cron 에러</b>\n\n` +
+      `⏰ 시간: ${kstTime}\n` +
+      `💥 에러: ${error instanceof Error ? error.message : 'Unknown error'}`
+    )
+
     return NextResponse.json(
       { error: 'SMS processing failed' },
       { status: 500 }
