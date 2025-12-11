@@ -57,12 +57,22 @@ const STATUS_LABELS: Record<string, { label: string; color: string }> = {
   pending: { label: '대기', color: 'bg-amber-100 text-amber-700' },
   sent: { label: '발송완료', color: 'bg-emerald-100 text-emerald-700' },
   failed: { label: '실패', color: 'bg-red-100 text-red-700' },
+  skipped: { label: '건너뜀', color: 'bg-gray-100 text-gray-600' },
 }
 
 export default function SmsPage() {
   const [schedules, setSchedules] = useState<SmsSchedule[]>([])
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState('all')
+  const [viewType, setViewType] = useState<'all' | 'daily' | 'monthly'>('all')
+  const [selectedDate, setSelectedDate] = useState(() => {
+    const today = new Date()
+    return today.toISOString().split('T')[0] // YYYY-MM-DD
+  })
+  const [selectedMonth, setSelectedMonth] = useState(() => {
+    const today = new Date()
+    return `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}` // YYYY-MM
+  })
 
   // 테스트 발송 관련 상태
   const [testDialogOpen, setTestDialogOpen] = useState(false)
@@ -79,6 +89,9 @@ export default function SmsPage() {
     try {
       const params = new URLSearchParams()
       if (filter !== 'all') params.set('status', filter)
+      params.set('viewType', viewType)
+      if (viewType === 'daily') params.set('date', selectedDate)
+      if (viewType === 'monthly') params.set('date', selectedMonth)
 
       const res = await fetch(`/api/sms/schedules?${params}`)
       const data = await res.json()
@@ -92,7 +105,7 @@ export default function SmsPage() {
 
   useEffect(() => {
     fetchSchedules()
-  }, [filter])
+  }, [filter, viewType, selectedDate, selectedMonth])
 
   // 테스트 발송 함수
   const handleTestSend = async () => {
@@ -202,7 +215,7 @@ export default function SmsPage() {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <Card>
           <CardContent className="p-4">
             <div className="text-2xl font-bold text-amber-600">
@@ -227,24 +240,76 @@ export default function SmsPage() {
             <p className="text-sm text-gray-500">실패</p>
           </CardContent>
         </Card>
+        <Card>
+          <CardContent className="p-4">
+            <div className="text-2xl font-bold text-gray-600">
+              {schedules.filter(s => s.status === 'skipped').length}
+            </div>
+            <p className="text-sm text-gray-500">건너뜀</p>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Filter */}
       <Card>
         <CardContent className="pt-6">
-          <div className="flex items-center gap-2">
-            <Label>상태</Label>
-            <Select value={filter} onValueChange={setFilter}>
-              <SelectTrigger className="w-32">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">전체</SelectItem>
-                <SelectItem value="pending">대기</SelectItem>
-                <SelectItem value="sent">발송완료</SelectItem>
-                <SelectItem value="failed">실패</SelectItem>
-              </SelectContent>
-            </Select>
+          <div className="flex flex-wrap items-center gap-4">
+            {/* 기간 필터 */}
+            <div className="flex items-center gap-2">
+              <Label>기간</Label>
+              <Select value={viewType} onValueChange={(v) => setViewType(v as 'all' | 'daily' | 'monthly')}>
+                <SelectTrigger className="w-28">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">전체</SelectItem>
+                  <SelectItem value="daily">일별</SelectItem>
+                  <SelectItem value="monthly">월별</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* 일별 선택 */}
+            {viewType === 'daily' && (
+              <div className="flex items-center gap-2">
+                <Input
+                  type="date"
+                  value={selectedDate}
+                  onChange={(e) => setSelectedDate(e.target.value)}
+                  className="w-40"
+                />
+              </div>
+            )}
+
+            {/* 월별 선택 */}
+            {viewType === 'monthly' && (
+              <div className="flex items-center gap-2">
+                <Input
+                  type="month"
+                  value={selectedMonth}
+                  onChange={(e) => setSelectedMonth(e.target.value)}
+                  className="w-40"
+                />
+              </div>
+            )}
+
+            {/* 상태 필터 */}
+            <div className="flex items-center gap-2">
+              <Label>상태</Label>
+              <Select value={filter} onValueChange={setFilter}>
+                <SelectTrigger className="w-28">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">전체</SelectItem>
+                  <SelectItem value="pending">대기</SelectItem>
+                  <SelectItem value="sent">발송완료</SelectItem>
+                  <SelectItem value="failed">실패</SelectItem>
+                  <SelectItem value="skipped">건너뜀</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
             <Button variant="outline" size="sm" onClick={fetchSchedules}>
               🔄 새로고침
             </Button>
