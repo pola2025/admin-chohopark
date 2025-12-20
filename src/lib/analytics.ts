@@ -103,6 +103,47 @@ export interface TrafficSource {
   sessions: number;
 }
 
+export interface TrafficSourceMedium {
+  source: string;
+  medium: string;
+  users: number;
+  sessions: number;
+  bounceRate: number;
+}
+
+export interface ChannelGroup {
+  channel: string;
+  users: number;
+  sessions: number;
+  pageViews: number;
+}
+
+export interface LandingPage {
+  page: string;
+  sessions: number;
+  users: number;
+  bounceRate: number;
+}
+
+export interface DeviceData {
+  device: string;
+  users: number;
+  sessions: number;
+  pageViews: number;
+}
+
+export interface CityData {
+  city: string;
+  users: number;
+  sessions: number;
+}
+
+export interface BrowserData {
+  browser: string;
+  users: number;
+  sessions: number;
+}
+
 // 기본 통계 조회 (오늘 ~ N일 전)
 export async function getAnalyticsSummary(days: number = 30): Promise<AnalyticsData | null> {
   if (!propertyId) {
@@ -305,5 +346,225 @@ export async function getRealtimeUsers(): Promise<number> {
   } catch (error) {
     console.error('Error fetching realtime users:', error);
     return 0;
+  }
+}
+
+// 소스 + 매체별 트래픽 조회
+export async function getTrafficSourceMedium(days: number = 30): Promise<TrafficSourceMedium[]> {
+  if (!propertyId) {
+    console.error('GA4_PROPERTY_ID is not set');
+    return [];
+  }
+
+  try {
+    const [response] = await analyticsDataClient.runReport({
+      property: `properties/${propertyId}`,
+      dateRanges: [{ startDate: `${days}daysAgo`, endDate: 'today' }],
+      dimensions: [
+        { name: 'sessionSource' },
+        { name: 'sessionMedium' },
+      ],
+      metrics: [
+        { name: 'totalUsers' },
+        { name: 'sessions' },
+        { name: 'bounceRate' },
+      ],
+      orderBys: [{ metric: { metricName: 'sessions' }, desc: true }],
+      limit: 15,
+    });
+
+    if (response.rows) {
+      return response.rows.map((row) => ({
+        source: row.dimensionValues?.[0]?.value || '(direct)',
+        medium: row.dimensionValues?.[1]?.value || '(none)',
+        users: parseInt(row.metricValues?.[0]?.value || '0'),
+        sessions: parseInt(row.metricValues?.[1]?.value || '0'),
+        bounceRate: parseFloat(row.metricValues?.[2]?.value || '0') * 100,
+      }));
+    }
+
+    return [];
+  } catch (error) {
+    console.error('Error fetching traffic source/medium:', error);
+    return [];
+  }
+}
+
+// 채널 그룹별 트래픽 조회
+export async function getChannelGroups(days: number = 30): Promise<ChannelGroup[]> {
+  if (!propertyId) {
+    console.error('GA4_PROPERTY_ID is not set');
+    return [];
+  }
+
+  try {
+    const [response] = await analyticsDataClient.runReport({
+      property: `properties/${propertyId}`,
+      dateRanges: [{ startDate: `${days}daysAgo`, endDate: 'today' }],
+      dimensions: [{ name: 'sessionDefaultChannelGroup' }],
+      metrics: [
+        { name: 'totalUsers' },
+        { name: 'sessions' },
+        { name: 'screenPageViews' },
+      ],
+      orderBys: [{ metric: { metricName: 'sessions' }, desc: true }],
+    });
+
+    if (response.rows) {
+      return response.rows.map((row) => ({
+        channel: row.dimensionValues?.[0]?.value || 'Other',
+        users: parseInt(row.metricValues?.[0]?.value || '0'),
+        sessions: parseInt(row.metricValues?.[1]?.value || '0'),
+        pageViews: parseInt(row.metricValues?.[2]?.value || '0'),
+      }));
+    }
+
+    return [];
+  } catch (error) {
+    console.error('Error fetching channel groups:', error);
+    return [];
+  }
+}
+
+// 랜딩 페이지 조회
+export async function getLandingPages(days: number = 30, limit: number = 10): Promise<LandingPage[]> {
+  if (!propertyId) {
+    console.error('GA4_PROPERTY_ID is not set');
+    return [];
+  }
+
+  try {
+    const [response] = await analyticsDataClient.runReport({
+      property: `properties/${propertyId}`,
+      dateRanges: [{ startDate: `${days}daysAgo`, endDate: 'today' }],
+      dimensions: [{ name: 'landingPage' }],
+      metrics: [
+        { name: 'sessions' },
+        { name: 'totalUsers' },
+        { name: 'bounceRate' },
+      ],
+      orderBys: [{ metric: { metricName: 'sessions' }, desc: true }],
+      limit,
+    });
+
+    if (response.rows) {
+      return response.rows.map((row) => ({
+        page: row.dimensionValues?.[0]?.value || '/',
+        sessions: parseInt(row.metricValues?.[0]?.value || '0'),
+        users: parseInt(row.metricValues?.[1]?.value || '0'),
+        bounceRate: parseFloat(row.metricValues?.[2]?.value || '0') * 100,
+      }));
+    }
+
+    return [];
+  } catch (error) {
+    console.error('Error fetching landing pages:', error);
+    return [];
+  }
+}
+
+// 기기별 통계 조회
+export async function getDeviceStats(days: number = 30): Promise<DeviceData[]> {
+  if (!propertyId) {
+    console.error('GA4_PROPERTY_ID is not set');
+    return [];
+  }
+
+  try {
+    const [response] = await analyticsDataClient.runReport({
+      property: `properties/${propertyId}`,
+      dateRanges: [{ startDate: `${days}daysAgo`, endDate: 'today' }],
+      dimensions: [{ name: 'deviceCategory' }],
+      metrics: [
+        { name: 'totalUsers' },
+        { name: 'sessions' },
+        { name: 'screenPageViews' },
+      ],
+      orderBys: [{ metric: { metricName: 'sessions' }, desc: true }],
+    });
+
+    if (response.rows) {
+      return response.rows.map((row) => ({
+        device: row.dimensionValues?.[0]?.value || 'unknown',
+        users: parseInt(row.metricValues?.[0]?.value || '0'),
+        sessions: parseInt(row.metricValues?.[1]?.value || '0'),
+        pageViews: parseInt(row.metricValues?.[2]?.value || '0'),
+      }));
+    }
+
+    return [];
+  } catch (error) {
+    console.error('Error fetching device stats:', error);
+    return [];
+  }
+}
+
+// 도시별 통계 조회
+export async function getCityStats(days: number = 30, limit: number = 15): Promise<CityData[]> {
+  if (!propertyId) {
+    console.error('GA4_PROPERTY_ID is not set');
+    return [];
+  }
+
+  try {
+    const [response] = await analyticsDataClient.runReport({
+      property: `properties/${propertyId}`,
+      dateRanges: [{ startDate: `${days}daysAgo`, endDate: 'today' }],
+      dimensions: [{ name: 'city' }],
+      metrics: [
+        { name: 'totalUsers' },
+        { name: 'sessions' },
+      ],
+      orderBys: [{ metric: { metricName: 'sessions' }, desc: true }],
+      limit,
+    });
+
+    if (response.rows) {
+      return response.rows.map((row) => ({
+        city: row.dimensionValues?.[0]?.value || '(not set)',
+        users: parseInt(row.metricValues?.[0]?.value || '0'),
+        sessions: parseInt(row.metricValues?.[1]?.value || '0'),
+      }));
+    }
+
+    return [];
+  } catch (error) {
+    console.error('Error fetching city stats:', error);
+    return [];
+  }
+}
+
+// 브라우저별 통계 조회
+export async function getBrowserStats(days: number = 30, limit: number = 10): Promise<BrowserData[]> {
+  if (!propertyId) {
+    console.error('GA4_PROPERTY_ID is not set');
+    return [];
+  }
+
+  try {
+    const [response] = await analyticsDataClient.runReport({
+      property: `properties/${propertyId}`,
+      dateRanges: [{ startDate: `${days}daysAgo`, endDate: 'today' }],
+      dimensions: [{ name: 'browser' }],
+      metrics: [
+        { name: 'totalUsers' },
+        { name: 'sessions' },
+      ],
+      orderBys: [{ metric: { metricName: 'sessions' }, desc: true }],
+      limit,
+    });
+
+    if (response.rows) {
+      return response.rows.map((row) => ({
+        browser: row.dimensionValues?.[0]?.value || 'unknown',
+        users: parseInt(row.metricValues?.[0]?.value || '0'),
+        sessions: parseInt(row.metricValues?.[1]?.value || '0'),
+      }));
+    }
+
+    return [];
+  } catch (error) {
+    console.error('Error fetching browser stats:', error);
+    return [];
   }
 }

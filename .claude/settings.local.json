@@ -50,7 +50,9 @@
       "mcp__railway-mcp-server__list-variables",
       "mcp__railway-mcp-server__list-deployments",
       "mcp__railway-mcp-server__set-variables",
-      "mcp__railway-mcp-server__deploy"
+      "mcp__railway-mcp-server__deploy",
+      "mcp__railway-mcp-server__get-logs",
+      "Bash(printf:*)"
     ]
   }
 }
