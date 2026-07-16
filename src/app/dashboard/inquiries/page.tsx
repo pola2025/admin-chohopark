@@ -162,6 +162,12 @@ export default function InquiriesPage() {
                     {item.product_name || "-"}
                   </span>
                 </div>
+                <div className="flex justify-between gap-3">
+                  <span className="shrink-0 text-gray-500">이용일</span>
+                  <span className="text-right font-medium">
+                    {item.use_date || "-"}
+                  </span>
+                </div>
                 <div className="flex justify-between">
                   <span className="text-gray-500">인원</span>
                   <span className="font-medium">
