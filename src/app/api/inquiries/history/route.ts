@@ -29,7 +29,7 @@ export async function GET(request: Request) {
       `${FORMS_URL}/admin/history?phone=${encodeURIComponent(phone)}`,
       {
         headers: { Authorization: `Bearer ${TOKEN}` },
-        next: { revalidate: 20 },
+        cache: "no-store",
       },
     );
     if (!res.ok) {
