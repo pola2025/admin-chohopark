@@ -35,16 +35,21 @@ export interface ContractEvent {
 export interface ContractDetail extends ContractSummary {
   email: string;
   representative: string;
+  contactTitle: string;
   businessRegistrationNumber: string;
   address: string;
   seminarTime: string;
   extraRooms: string;
   discountAmount: number;
   depositAmount: number;
+  balanceAmount: number;
   depositReceivedAt: string;
   signedAt: string;
   signerName: string;
   confirmedAt: string;
+  confirmationEmailSentAt: string;
+  businessLicenseUrl: string;
+  businessCardUrl: string;
   originalUrl: string;
   originalHtml: string;
   notes: string;
@@ -186,6 +191,11 @@ function normalizeDetail(value: unknown): ContractDetail {
       ["representative", "companyRepresentative", "company_representative"],
       text(customer, ["representative"]),
     ),
+    contactTitle: text(
+      row,
+      ["contactTitle", "contact_title"],
+      text(customer, ["contactTitle", "title"]),
+    ),
     businessRegistrationNumber: text(
       row,
       ["businessRegistrationNumber", "business_registration_number"],
@@ -210,10 +220,20 @@ function normalizeDetail(value: unknown): ContractDetail {
     ]),
     discountAmount: amount(row, ["discountAmount", "discount_amount"]),
     depositAmount: amount(row, ["depositAmount", "deposit_amount"]),
+    balanceAmount: amount(row, ["balanceAmount", "balance_amount"]),
     depositReceivedAt: text(row, ["depositReceivedAt", "deposit_received_at"]),
     signedAt: text(row, ["signedAt", "signed_at"]),
     signerName: text(row, ["signerName", "signer_name"]),
     confirmedAt: text(row, ["confirmedAt", "confirmed_at"]),
+    confirmationEmailSentAt: text(row, [
+      "confirmationEmailSentAt",
+      "confirmation_email_sent_at",
+    ]),
+    businessLicenseUrl: text(row, [
+      "businessLicenseUrl",
+      "business_license_url",
+    ]),
+    businessCardUrl: text(row, ["businessCardUrl", "business_card_url"]),
     originalUrl: text(
       row,
       ["originalUrl", "original_url", "documentUrl", "document_url"],
@@ -272,14 +292,28 @@ export async function getContract(id: string): Promise<ContractDetail> {
   return normalizeDetail(first(root, ["contract", "data"]) ?? root);
 }
 
-export async function confirmDeposit(id: string): Promise<void> {
+export interface DepositResult {
+  status: string;
+  signed: boolean;
+  confirmationEmailSent: boolean;
+  confirmationEmailTo: string;
+}
+
+export async function confirmDeposit(id: string): Promise<DepositResult> {
   const response = await fetch(
     `/api/contract-proxy/${encodeURIComponent(id)}/deposit`,
     { method: "POST" },
   );
   const body = await responseJson(response);
   if (!response.ok)
-    throw new Error(errorMessage(body, "계약금 확인을 처리하지 못했습니다."));
+    throw new Error(errorMessage(body, "예약금 확인을 처리하지 못했습니다."));
+  const row = object(body);
+  return {
+    status: text(row, ["status"]),
+    signed: first(row, ["signed"]) === true,
+    confirmationEmailSent: first(row, ["confirmationEmailSent"]) === true,
+    confirmationEmailTo: text(row, ["confirmationEmailTo"]),
+  };
 }
 
 export async function updateContractStatus(
@@ -301,11 +335,11 @@ export async function updateContractStatus(
 
 export const statusLabel: Record<ContractStatus, string> = {
   draft: "작성 중",
-  issued: "서명 대기",
+  issued: "동의 대기",
   sent: "링크 전달",
   viewed: "고객 열람",
-  signed: "서명 완료",
-  deposit_received: "입금 확인",
+  signed: "동의 완료 · 입금 대기",
+  deposit_received: "입금 확인 · 동의 대기",
   confirmed: "예약 확정",
   cancelled: "취소",
   superseded: "대체됨",

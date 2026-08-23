@@ -39,6 +39,7 @@ export default function ContractDetailPage() {
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
+  const [notice, setNotice] = useState("");
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -63,14 +64,26 @@ export default function ContractDetailPage() {
   async function deposit() {
     setBusy(true);
     setMessage("");
+    setNotice("");
     try {
-      await confirmDeposit(id);
+      const result = await confirmDeposit(id);
+      if (result.status === "confirmed") {
+        setNotice(
+          result.confirmationEmailSent
+            ? `예약이 확정되었습니다. 확정본을 ${result.confirmationEmailTo} 으로 보냈습니다.`
+            : "예약이 확정되었습니다. 다만 확정본 메일은 발송되지 않았습니다. 담당자 이메일을 확인해 주세요.",
+        );
+      } else {
+        setNotice(
+          "예약금은 확인했지만 고객 동의(서명)가 아직입니다. 고객이 서명하면 확정되고 확정본이 발송됩니다.",
+        );
+      }
       await load();
     } catch (error) {
       setMessage(
         error instanceof Error
           ? error.message
-          : "계약금 확인을 처리하지 못했습니다.",
+          : "예약금 확인을 처리하지 못했습니다.",
       );
     } finally {
       setBusy(false);
@@ -164,6 +177,12 @@ export default function ContractDetailPage() {
         </p>
       ) : null}
 
+      {notice ? (
+        <p className="rounded-lg border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-800">
+          {notice}
+        </p>
+      ) : null}
+
       <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_380px]">
         <section className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
           <div className="flex items-center justify-between border-b border-gray-200 px-5 py-4">
@@ -207,7 +226,11 @@ export default function ContractDetailPage() {
               <dt className="text-gray-500">대표자</dt>
               <dd>{contract.representative || "미입력"}</dd>
               <dt className="text-gray-500">담당자</dt>
-              <dd>{contract.customerName || "미입력"}</dd>
+              <dd>
+                {[contract.customerName, contract.contactTitle]
+                  .filter(Boolean)
+                  .join(" ") || "미입력"}
+              </dd>
               <dt className="text-gray-500">연락처</dt>
               <dd>{contract.phone || "미입력"}</dd>
               <dt className="text-gray-500">이메일</dt>
@@ -217,6 +240,39 @@ export default function ContractDetailPage() {
               <dt className="text-gray-500">주소</dt>
               <dd>{contract.address || "미입력"}</dd>
             </dl>
+            <div className="mt-4 border-t border-gray-100 pt-4">
+              <p className="text-xs font-semibold text-gray-500">첨부 사본</p>
+              <div className="mt-2 flex flex-wrap gap-2 text-sm">
+                {contract.businessLicenseUrl ? (
+                  <a
+                    href={`/api/contract-proxy/${encodeURIComponent(id)}/document/business_license`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex items-center gap-1 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-1.5 font-medium text-emerald-800"
+                  >
+                    사업자등록증 <ExternalLink className="h-3.5 w-3.5" />
+                  </a>
+                ) : (
+                  <span className="rounded-lg border border-gray-200 px-3 py-1.5 text-gray-400">
+                    사업자등록증 없음
+                  </span>
+                )}
+                {contract.businessCardUrl ? (
+                  <a
+                    href={`/api/contract-proxy/${encodeURIComponent(id)}/document/business_card`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex items-center gap-1 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-1.5 font-medium text-emerald-800"
+                  >
+                    담당자 명함 <ExternalLink className="h-3.5 w-3.5" />
+                  </a>
+                ) : (
+                  <span className="rounded-lg border border-gray-200 px-3 py-1.5 text-gray-400">
+                    명함 없음
+                  </span>
+                )}
+              </div>
+            </div>
           </section>
 
           <section className="rounded-xl border border-gray-200 bg-white p-5">
@@ -240,34 +296,38 @@ export default function ContractDetailPage() {
               </dd>
               <dt className="text-gray-500">계약금</dt>
               <dd>{money(contract.depositAmount)}</dd>
+              <dt className="text-gray-500">잔금</dt>
+              <dd>{money(contract.balanceAmount)} (이용 당일 결제)</dd>
             </dl>
           </section>
 
           <section className="rounded-xl border border-gray-200 bg-white p-5">
-            <h2 className="font-semibold text-gray-900">입금·서명 상태</h2>
+            <h2 className="font-semibold text-gray-900">동의·입금 상태</h2>
             <div className="mt-4 space-y-3 text-sm">
-              <div className="flex gap-3">
-                <CheckCircle2
-                  className={`mt-0.5 h-5 w-5 ${contract.depositReceivedAt ? "text-emerald-600" : "text-gray-300"}`}
-                />
-                <p>
-                  <strong className="block text-gray-900">계약금 입금</strong>
-                  <span className="text-gray-500">
-                    {dateTime(contract.depositReceivedAt)}
-                  </span>
-                </p>
-              </div>
               <div className="flex gap-3">
                 <CheckCircle2
                   className={`mt-0.5 h-5 w-5 ${contract.signedAt ? "text-emerald-600" : "text-gray-300"}`}
                 />
                 <p>
                   <strong className="block text-gray-900">
-                    담당자 서명{" "}
+                    고객 동의·서명{" "}
                     {contract.signerName ? `· ${contract.signerName}` : ""}
                   </strong>
                   <span className="text-gray-500">
                     {dateTime(contract.signedAt)}
+                  </span>
+                </p>
+              </div>
+              <div className="flex gap-3">
+                <CheckCircle2
+                  className={`mt-0.5 h-5 w-5 ${contract.depositReceivedAt ? "text-emerald-600" : "text-gray-300"}`}
+                />
+                <p>
+                  <strong className="block text-gray-900">
+                    예약금 입금 확인
+                  </strong>
+                  <span className="text-gray-500">
+                    {dateTime(contract.depositReceivedAt)}
                   </span>
                 </p>
               </div>
@@ -284,6 +344,21 @@ export default function ContractDetailPage() {
                   </span>
                 </p>
               </div>
+              <div className="flex gap-3">
+                <CheckCircle2
+                  className={`mt-0.5 h-5 w-5 ${contract.confirmationEmailSentAt ? "text-emerald-600" : "text-gray-300"}`}
+                />
+                <p>
+                  <strong className="block text-gray-900">
+                    확정본 메일 발송
+                  </strong>
+                  <span className="text-gray-500">
+                    {contract.confirmationEmailSentAt
+                      ? dateTime(contract.confirmationEmailSentAt)
+                      : contract.email || "담당자 이메일 없음"}
+                  </span>
+                </p>
+              </div>
             </div>
             <div className="mt-5 grid gap-2">
               <button
@@ -293,10 +368,10 @@ export default function ContractDetailPage() {
                 className="rounded-lg bg-emerald-700 px-4 py-2.5 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {contract.depositReceivedAt
-                  ? "입금 확인 완료"
+                  ? "예약금 확인 완료"
                   : busy
                     ? "처리 중..."
-                    : "계약금 입금 확인"}
+                    : "예약금 입금 확인 · 최종 확정"}
               </button>
               {!["cancelled", "superseded"].includes(contract.status) ? (
                 <button
