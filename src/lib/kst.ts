@@ -141,7 +141,7 @@ export function calculateSmsScheduleTime(
       d_minus_1: { dayOffset: -1, time: '10:00' },
       d_day_morning: { dayOffset: 0, time: '08:00' },
       before_meal: { dayOffset: 0, time: '11:30' },
-      before_close: { dayOffset: 0, time: '16:00' },
+      before_close: { dayOffset: 0, time: '15:30' },
     },
     training: {
       d_minus_1: { dayOffset: -1, time: '10:00' },

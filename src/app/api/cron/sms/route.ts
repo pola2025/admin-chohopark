@@ -24,6 +24,17 @@ async function sendTelegramNotification(message: string) {
   }
 }
 
+/**
+ * 이용일 전후 안내 문자 자동 발송 스위치.
+ *
+ * 고객에게 실제로 나가는 발송이라 기본은 꺼진 상태다.
+ * 문구를 검수한 뒤 SMS_AUTO_SEND 를 'on' 으로 두면 그때부터 나간다.
+ * 꺼져 있는 동안에도 예약을 등록하면 발송 일정은 쌓인다.
+ */
+function autoSendEnabled(): boolean {
+  return process.env.SMS_AUTO_SEND?.trim().toLowerCase() === 'on'
+}
+
 export async function POST(request: NextRequest) {
   // Verify cron secret
   const authHeader = request.headers.get('authorization')
@@ -31,6 +42,14 @@ export async function POST(request: NextRequest) {
 
   if (!cronSecret || authHeader !== `Bearer ${cronSecret}`) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
+  if (!autoSendEnabled()) {
+    return NextResponse.json({
+      skipped: true,
+      reason: '자동 발송이 꺼져 있습니다 (SMS_AUTO_SEND)',
+      sent: 0,
+    })
   }
 
   const now = new Date()

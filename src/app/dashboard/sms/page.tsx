@@ -205,6 +205,20 @@ export default function SmsPage() {
         </Dialog>
       </div>
 
+      {/* 자동 발송이 꺼져 있다는 사실을 화면에서 바로 알 수 있어야 한다.
+          모르고 예약을 등록하면 문자가 나간 줄 알기 때문이다. */}
+      <div className="flex items-start gap-2 border border-[var(--gov-warn)]/40 bg-[var(--gov-warn-weak)] p-3 text-[13px] text-[var(--gov-warn)]">
+        <Icon name="alert" size={17} className="mt-0.5 shrink-0" />
+        <div>
+          <b>이용일 전후 안내 문자는 지금 나가지 않습니다.</b>
+          <p className="mt-1 text-[12.5px]">
+            예약을 등록하면 발송 일정은 쌓이지만 실제 발송은 멈춰 있습니다.
+            문구를 검수한 뒤 열 수 있습니다. 아래 테스트 발송은 그와 무관하게
+            바로 나가니 주의해 주세요.
+          </p>
+        </div>
+      </div>
+
       {/* 현재 시간 (KST) 표시 */}
       <div className="bg-[var(--gov-brand-weak)] border border-[#b9cbe4] rounded-sm p-3 text-sm text-[#132a4f]">
         <strong>현재 시각 (KST):</strong>{' '}
