@@ -145,9 +145,9 @@ export function DemandHeatmap({
                       key={label}
                       className={
                         index === 0
-                          ? "text-red-500"
+                          ? "text-[var(--gov-danger)]"
                           : index === 6
-                            ? "text-blue-500"
+                            ? "text-[var(--gov-brand)]"
                             : "text-gray-400"
                       }
                     >

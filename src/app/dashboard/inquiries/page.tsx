@@ -46,18 +46,18 @@ const PAGE_SIZE = 50;
 function kindBadge(kind: string) {
   return kind === "quote"
     ? "bg-[#dce5f1] text-[#132a4f]"
-    : "bg-blue-100 text-blue-800";
+    : "bg-[#dce5f1] text-[#132a4f]";
 }
 
 function sourceBadge(src: string | null) {
   const s = src || "";
   if (s.includes("파워링크")) return "bg-[var(--gov-ok)] text-white";
   if (s.includes("스마트플레이스")) return "bg-[#dbe8dd] text-[#164423]";
-  if (s.includes("블로그")) return "bg-lime-100 text-lime-800";
+  if (s.includes("블로그")) return "bg-[#dde8e6] text-[#1d4a44]";
   if (s.includes("네이버")) return "bg-[var(--gov-brand-weak)] text-[var(--gov-brand)]";
   if (s.includes("구글")) return "bg-[#efe5d3] text-[#6d3b06]";
   if (s.includes("인스타")) return "bg-[#ece7f0] text-[#3d3546]";
-  if (s.includes("페이스북")) return "bg-indigo-100 text-indigo-800";
+  if (s.includes("페이스북")) return "bg-[#dfe0ee] text-[#2e2f52]";
   return "bg-gray-100 text-gray-600";
 }
 
@@ -520,7 +520,7 @@ function DetailCard({
   return (
     <div className="overflow-hidden rounded-sm border border-gray-200 bg-white">
       <div
-        className={`border-b border-gray-200 px-4 py-3 ${item.kind === "quote" ? "bg-[var(--gov-brand-weak)]" : "bg-blue-50"}`}
+        className={`border-b border-gray-200 px-4 py-3 ${item.kind === "quote" ? "bg-[var(--gov-brand-weak)]" : "bg-[var(--gov-brand-weak)]"}`}
       >
         <div className="flex items-center gap-2">
           <span

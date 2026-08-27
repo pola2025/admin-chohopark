@@ -81,7 +81,7 @@ function MobileDataCard({
             className={`flex items-center text-xs px-2 py-1 rounded-full ${
               change > 0
                 ? "bg-[#dbe8dd] text-[var(--gov-ok)]"
-                : "bg-red-100 text-red-700"
+                : "bg-[#f0dede] text-[var(--gov-danger)]"
             }`}
           >
             {change > 0 ? (
@@ -124,7 +124,7 @@ function MobileDataCard({
         <p className="text-gray-500 text-xs">세션수</p>
         <p
           className={`text-lg font-bold ${
-            isHighlighted ? "text-[var(--gov-warn)]" : "text-blue-600"
+            isHighlighted ? "text-[var(--gov-warn)]" : "text-[var(--gov-brand)]"
           }`}
         >
           {formatNumber(sessions)}
@@ -376,7 +376,7 @@ export function VisitorPeriodTable({
                         onClick={() => scrollToCard(index)}
                         className={`w-2 h-2 rounded-full transition-colors ${
                           index === mobileCardIndex
-                            ? "bg-blue-600"
+                            ? "bg-[var(--gov-brand)]"
                             : "bg-gray-300"
                         }`}
                       />
@@ -446,7 +446,7 @@ export function VisitorPeriodTable({
                 monthly.map((m) => (
                   <Fragment key={m.month}>
                     <tr
-                      className="bg-blue-50 hover:bg-blue-100 cursor-pointer"
+                      className="bg-[var(--gov-brand-weak)] hover:bg-[#dce5f1] cursor-pointer"
                       onClick={() => toggleMonth(m.month)}
                     >
                       <td className="px-3 py-2 font-medium">
@@ -456,7 +456,7 @@ export function VisitorPeriodTable({
                           ) : (
                             <ChevronRight className="h-4 w-4 text-gray-500" />
                           )}
-                          <Calendar className="h-4 w-4 text-blue-600" />
+                          <Calendar className="h-4 w-4 text-[var(--gov-brand)]" />
                           {m.month_label}
                         </div>
                       </td>
@@ -615,7 +615,7 @@ export function VisitorPeriodTable({
                   return monthSummaries.map((ms) => (
                     <Fragment key={ms.month}>
                       <tr
-                        className="bg-blue-50 hover:bg-blue-100 cursor-pointer"
+                        className="bg-[var(--gov-brand-weak)] hover:bg-[#dce5f1] cursor-pointer"
                         onClick={() => toggleMonth(ms.month)}
                       >
                         <td className="px-3 py-2 font-medium">
@@ -625,7 +625,7 @@ export function VisitorPeriodTable({
                             ) : (
                               <ChevronRight className="h-4 w-4 text-gray-500" />
                             )}
-                            <Calendar className="h-4 w-4 text-blue-600" />
+                            <Calendar className="h-4 w-4 text-[var(--gov-brand)]" />
                             {ms.month_label}
                             <span className="text-xs text-gray-400 ml-1">
                               ({ms.days.length}일)

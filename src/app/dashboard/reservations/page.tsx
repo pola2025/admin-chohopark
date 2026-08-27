@@ -238,7 +238,7 @@ export default function ReservationsPage() {
                       </div>
                     </div>
                     <div className="flex items-center justify-between gap-2 pt-2 border-t">
-                      <a href={`tel:${r.phone}`} className="text-xs sm:text-sm text-blue-600 font-medium">{r.phone}</a>
+                      <a href={`tel:${r.phone}`} className="text-xs sm:text-sm text-[var(--gov-brand)] font-medium">{r.phone}</a>
                       <div className="flex gap-1.5">
                         <Button size="sm" variant="outline" className="h-7 px-2 text-xs" onClick={() => openEditDialog(r)}>
                           수정

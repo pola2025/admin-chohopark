@@ -115,13 +115,13 @@ export default function ContractDetailPage() {
   }
   if (!contract) {
     return (
-      <div className="mx-auto max-w-3xl rounded-sm border border-red-200 bg-red-50 p-8 text-center">
-        <p className="text-red-700">
+      <div className="mx-auto max-w-3xl rounded-sm border border-[#e2c4c4] bg-[var(--gov-danger-weak)] p-8 text-center">
+        <p className="text-[var(--gov-danger)]">
           {message || "약정서를 찾을 수 없습니다."}
         </p>
         <button
           onClick={() => router.back()}
-          className="mt-4 text-sm font-semibold text-red-800 underline"
+          className="mt-4 text-sm font-semibold text-[#7a2020] underline"
         >
           이전 화면
         </button>
@@ -171,7 +171,7 @@ export default function ContractDetailPage() {
       {message ? (
         <p
           role="alert"
-          className="rounded-sm border border-red-200 bg-red-50 p-4 text-sm text-red-700"
+          className="rounded-sm border border-[#e2c4c4] bg-[var(--gov-danger-weak)] p-4 text-sm text-[var(--gov-danger)]"
         >
           {message}
         </p>
@@ -378,7 +378,7 @@ export default function ContractDetailPage() {
                   type="button"
                   onClick={() => void cancel()}
                   disabled={busy}
-                  className="rounded-sm border border-red-200 px-4 py-2.5 text-sm font-medium text-red-700 hover:bg-red-50 disabled:opacity-50"
+                  className="rounded-sm border border-[#e2c4c4] px-4 py-2.5 text-sm font-medium text-[var(--gov-danger)] hover:bg-[var(--gov-danger-weak)] disabled:opacity-50"
                 >
                   약정 취소 처리
                 </button>

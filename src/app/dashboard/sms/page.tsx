@@ -57,7 +57,7 @@ const SCHEDULE_TYPES: Record<string, string> = {
 const STATUS_LABELS: Record<string, { label: string; color: string }> = {
   pending: { label: '대기', color: 'bg-[#efe5d3] text-[var(--gov-warn)]' },
   sent: { label: '발송완료', color: 'bg-[#dce5f1] text-[var(--gov-brand)]' },
-  failed: { label: '실패', color: 'bg-red-100 text-red-700' },
+  failed: { label: '실패', color: 'bg-[#f0dede] text-[var(--gov-danger)]' },
   skipped: { label: '건너뜀', color: 'bg-gray-100 text-gray-600' },
 }
 
@@ -206,10 +206,10 @@ export default function SmsPage() {
       </div>
 
       {/* 현재 시간 (KST) 표시 */}
-      <div className="bg-blue-50 border border-blue-200 rounded-sm p-3 text-sm text-blue-800">
+      <div className="bg-[var(--gov-brand-weak)] border border-[#b9cbe4] rounded-sm p-3 text-sm text-[#132a4f]">
         <strong>현재 시각 (KST):</strong>{' '}
         {new Date().toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' })}
-        <span className="ml-4 text-blue-600">
+        <span className="ml-4 text-[var(--gov-brand)]">
           모든 시간은 한국 표준시(KST) 기준입니다.
         </span>
       </div>
@@ -234,7 +234,7 @@ export default function SmsPage() {
         </Card>
         <Card>
           <CardContent className="p-4">
-            <div className="text-2xl font-bold text-red-600">
+            <div className="text-2xl font-bold text-[var(--gov-danger)]">
               {schedules.filter(s => s.status === 'failed').length}
             </div>
             <p className="text-sm text-gray-500">실패</p>
@@ -396,7 +396,7 @@ export default function SmsPage() {
                                   </div>
                                   <div className="flex justify-between">
                                     <span className="text-gray-500">연락처</span>
-                                    <a href={`tel:${s.reservation?.phone}`} className="text-blue-600 font-medium">
+                                    <a href={`tel:${s.reservation?.phone}`} className="text-[var(--gov-brand)] font-medium">
                                       {s.reservation?.phone || '-'}
                                     </a>
                                   </div>

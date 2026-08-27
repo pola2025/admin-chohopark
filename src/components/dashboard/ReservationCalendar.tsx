@@ -25,7 +25,7 @@ const productTypeLabels: Record<string, string> = {
 }
 
 const productTypeColors: Record<string, { bg: string; text: string; dot: string }> = {
-  overnight: { bg: 'bg-blue-50', text: 'text-blue-700', dot: 'bg-blue-500' },
+  overnight: { bg: 'bg-[var(--gov-brand-weak)]', text: 'text-[var(--gov-brand)]', dot: 'bg-[var(--gov-brand)]' },
   daytrip: { bg: 'bg-[var(--gov-brand-weak)]', text: 'text-[var(--gov-brand)]', dot: 'bg-[var(--gov-brand)]' },
   training: { bg: 'bg-[#f1f2f5]', text: 'text-[#3f4653]', dot: 'bg-[var(--gov-ink-sub)]' },
 }
@@ -38,7 +38,7 @@ const paymentStatusLabels: Record<string, string> = {
 
 const paymentStatusColors: Record<string, string> = {
   pending: 'bg-[#efe5d3] text-[var(--gov-warn)]',
-  partial: 'bg-blue-100 text-blue-700',
+  partial: 'bg-[#dce5f1] text-[var(--gov-brand)]',
   completed: 'bg-[#dce5f1] text-[var(--gov-brand)]',
 }
 
@@ -113,7 +113,7 @@ export function ReservationCalendar({ reservations }: ReservationCalendarProps) 
             <span className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded bg-[#efe5d3] border border-[#cbb489]"></span> 예약
           </span>
           <span className="flex items-center gap-1">
-            <span className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded bg-blue-500"></span> 워크샵
+            <span className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded bg-[var(--gov-brand)]"></span> 워크샵
           </span>
           <span className="flex items-center gap-1">
             <span className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded bg-[var(--gov-brand)]"></span> 야유회
@@ -222,7 +222,7 @@ export function ReservationCalendar({ reservations }: ReservationCalendarProps) 
             <span className="w-2 h-2 rounded-full bg-[var(--gov-warn)]"></span> 미결제
           </span>
           <span className="flex items-center gap-1">
-            <span className="w-2 h-2 rounded-full bg-blue-500"></span> 부분결제
+            <span className="w-2 h-2 rounded-full bg-[var(--gov-brand)]"></span> 부분결제
           </span>
           <span className="flex items-center gap-1">
             <span className="w-2 h-2 rounded-full bg-[var(--gov-brand)]"></span> 완료

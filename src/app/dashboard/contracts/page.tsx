@@ -83,7 +83,7 @@ export default function ContractsPage() {
         <button className="rounded-sm bg-[var(--gov-brand)] px-5 py-2.5 text-sm font-semibold text-white hover:bg-[#132a4f]">검색</button>
       </form>
 
-      {message ? <p role="alert" className="rounded-sm border border-red-200 bg-red-50 p-4 text-sm text-red-700">{message}</p> : null}
+      {message ? <p role="alert" className="rounded-sm border border-[#e2c4c4] bg-[var(--gov-danger-weak)] p-4 text-sm text-[var(--gov-danger)]">{message}</p> : null}
 
       <section className="overflow-hidden rounded-sm border border-gray-200 bg-white">
         <div className="hidden grid-cols-[1.1fr_1fr_1.4fr_.8fr_1fr_.8fr] gap-4 border-b border-gray-200 bg-gray-50 px-5 py-3 text-xs font-semibold text-gray-600 lg:grid">

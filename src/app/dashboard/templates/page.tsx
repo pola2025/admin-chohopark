@@ -36,7 +36,7 @@ const SEND_SCHEDULE: Record<string, { d_minus_1: string; d_day_morning: string; 
     before_meal: '당일 17:30',
     before_close: '익일 10:00',
     timeline: [
-      { time: '전날 10:00', label: 'D-1 안내', color: 'bg-blue-500' },
+      { time: '전날 10:00', label: 'D-1 안내', color: 'bg-[var(--gov-brand)]' },
       { time: '당일 08:00', label: '당일 아침', color: 'bg-[var(--gov-warn)]' },
       { time: '당일 15:00', label: '입실', color: 'bg-gray-400' },
       { time: '당일 17:30', label: '식사 안내', color: 'bg-[var(--gov-ok)]' },
@@ -50,7 +50,7 @@ const SEND_SCHEDULE: Record<string, { d_minus_1: string; d_day_morning: string; 
     before_meal: '당일 11:30',
     before_close: '당일 16:00',
     timeline: [
-      { time: '전날 10:00', label: 'D-1 안내', color: 'bg-blue-500' },
+      { time: '전날 10:00', label: 'D-1 안내', color: 'bg-[var(--gov-brand)]' },
       { time: '당일 08:00', label: '당일 아침', color: 'bg-[var(--gov-warn)]' },
       { time: '당일 10:00', label: '입실', color: 'bg-gray-400' },
       { time: '당일 11:30', label: '식사 안내', color: 'bg-[var(--gov-ok)]' },
@@ -64,7 +64,7 @@ const SEND_SCHEDULE: Record<string, { d_minus_1: string; d_day_morning: string; 
     before_meal: '당일 17:30',
     before_close: '3일차 10:00',
     timeline: [
-      { time: '전날 10:00', label: 'D-1 안내', color: 'bg-blue-500' },
+      { time: '전날 10:00', label: 'D-1 안내', color: 'bg-[var(--gov-brand)]' },
       { time: '당일 08:00', label: '당일 아침', color: 'bg-[var(--gov-warn)]' },
       { time: '당일 15:00', label: '입실', color: 'bg-gray-400' },
       { time: '당일 17:30', label: '식사 안내', color: 'bg-[var(--gov-ok)]' },
