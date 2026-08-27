@@ -26,7 +26,7 @@ const productTypeLabels: Record<string, string> = {
 
 const productTypeColors: Record<string, { bg: string; text: string; dot: string }> = {
   overnight: { bg: 'bg-[var(--gov-brand-weak)]', text: 'text-[var(--gov-brand)]', dot: 'bg-[var(--gov-brand)]' },
-  daytrip: { bg: 'bg-[var(--gov-brand-weak)]', text: 'text-[var(--gov-brand)]', dot: 'bg-[var(--gov-brand)]' },
+  daytrip: { bg: 'bg-[#e7edf5]', text: 'text-[#3a5f8f]', dot: 'bg-[#4a75ad]' },
   training: { bg: 'bg-[#f1f2f5]', text: 'text-[#3f4653]', dot: 'bg-[var(--gov-ink-sub)]' },
 }
 
@@ -37,9 +37,9 @@ const paymentStatusLabels: Record<string, string> = {
 }
 
 const paymentStatusColors: Record<string, string> = {
-  pending: 'bg-[#efe5d3] text-[var(--gov-warn)]',
+  pending: 'bg-[var(--gov-warn-weak)] text-[var(--gov-warn)]',
   partial: 'bg-[#dce5f1] text-[var(--gov-brand)]',
-  completed: 'bg-[#dce5f1] text-[var(--gov-brand)]',
+  completed: 'bg-[var(--gov-ok-weak)] text-[var(--gov-ok)]',
 }
 
 export function ReservationCalendar({ reservations }: ReservationCalendarProps) {
@@ -116,7 +116,7 @@ export function ReservationCalendar({ reservations }: ReservationCalendarProps) 
             <span className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded bg-[var(--gov-brand)]"></span> 워크샵
           </span>
           <span className="flex items-center gap-1">
-            <span className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded bg-[var(--gov-brand)]"></span> 야유회
+            <span className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded bg-[#4a75ad]"></span> 야유회
           </span>
           <span className="flex items-center gap-1">
             <span className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded bg-[var(--gov-ink-sub)]"></span> 수련회
@@ -222,10 +222,10 @@ export function ReservationCalendar({ reservations }: ReservationCalendarProps) 
             <span className="w-2 h-2 rounded-full bg-[var(--gov-warn)]"></span> 미결제
           </span>
           <span className="flex items-center gap-1">
-            <span className="w-2 h-2 rounded-full bg-[var(--gov-brand)]"></span> 부분결제
+            <span className="w-2 h-2 rounded-full bg-[#4a75ad]"></span> 부분결제
           </span>
           <span className="flex items-center gap-1">
-            <span className="w-2 h-2 rounded-full bg-[var(--gov-brand)]"></span> 완료
+            <span className="w-2 h-2 rounded-full bg-[var(--gov-ok)]"></span> 완료
           </span>
         </div>
       </div>
