@@ -1,102 +1,97 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { supabaseAdmin } from '@/lib/supabase'
-import { getSession } from '@/lib/auth'
-import { calculateSmsScheduleTime } from '@/lib/kst'
+import { NextResponse } from "next/server";
+import { getSession } from "@/lib/auth";
 
-export async function GET(request: NextRequest) {
-  const isAuthenticated = await getSession()
-  if (!isAuthenticated) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+
+const UPSTREAM = "https://chorigol.net/api/admin/reservations";
+const TOKEN = process.env.CONTRACT_ADMIN_API_TOKEN;
+
+/**
+ * 예약 목록 — chorigol.net 의 D1 예약 저장소를 대신 읽는다.
+ *
+ * 약정서에서 확정된 건과 구글 캘린더에 손으로 적은 건이 한 자리에 모여 있다.
+ * 고객 정보는 암호화 저장이라 저쪽에서 복호화해 내려준다.
+ * 브라우저가 그 토큰을 갖지 않도록 이 경로를 거친다.
+ */
+export async function GET(request: Request) {
+  if (!(await getSession())) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+  if (!TOKEN) {
+    return NextResponse.json(
+      { error: "CONTRACT_ADMIN_API_TOKEN 미설정" },
+      { status: 503 },
+    );
   }
 
-  const searchParams = request.nextUrl.searchParams
-  const page = parseInt(searchParams.get('page') || '1')
-  const limit = parseInt(searchParams.get('limit') || '20')
-  const status = searchParams.get('status')
-  const from = searchParams.get('from')
-  const to = searchParams.get('to')
-
-  let query = supabaseAdmin
-    .from('reservations')
-    .select('*', { count: 'exact' })
-    .order('use_date', { ascending: false })
-
-  if (status && status !== 'all') {
-    query = query.eq('payment_status', status)
-  }
-  if (from) {
-    query = query.gte('use_date', from)
-  }
-  if (to) {
-    query = query.lte('use_date', to)
-  }
-
-  const offset = (page - 1) * limit
-  query = query.range(offset, offset + limit - 1)
-
-  const { data, error, count } = await query
-
-  if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 })
-  }
-
-  return NextResponse.json({
-    data,
-    pagination: {
-      page,
-      limit,
-      total: count || 0,
-      totalPages: Math.ceil((count || 0) / limit),
-    },
-  })
-}
-
-export async function POST(request: NextRequest) {
-  const isAuthenticated = await getSession()
-  if (!isAuthenticated) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  const incoming = new URL(request.url).searchParams;
+  const params = new URLSearchParams();
+  for (const key of [
+    "status",
+    "paymentStatus",
+    "source",
+    "from",
+    "to",
+    "query",
+    "needsReview",
+    "page",
+    "pageSize",
+  ]) {
+    const value = incoming.get(key);
+    if (value) params.set(key, value);
   }
 
   try {
-    const body = await request.json()
-
-    const { data, error } = await supabaseAdmin
-      .from('reservations')
-      .insert([body])
-      .select()
-      .single()
-
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 })
+    const res = await fetch(`${UPSTREAM}?${params}`, {
+      headers: { Authorization: `Bearer ${TOKEN}` },
+      cache: "no-store",
+    });
+    if (!res.ok) {
+      return NextResponse.json({ error: "조회 실패" }, { status: 502 });
     }
-
-    // SMS 스케줄 자동 생성 (KST 기준)
-    await createSmsSchedules(data.id, data.use_date, data.product_type)
-
-    return NextResponse.json(data, { status: 201 })
+    return NextResponse.json(await res.json());
   } catch {
-    return NextResponse.json({ error: '예약 생성 실패' }, { status: 500 })
+    return NextResponse.json({ error: "조회 실패" }, { status: 500 });
   }
 }
 
-/**
- * SMS 스케줄 생성 (KST 기준)
- * 모든 시간은 KST 기준으로 계산되어 UTC로 저장됨
- */
-async function createSmsSchedules(reservationId: number, useDate: string, productType: string) {
-  const scheduleTypes = ['d_minus_1', 'd_day_morning', 'before_meal', 'before_close']
+/** 구글 캘린더에 손으로 적은 예약을 가져온다. */
+export async function POST(request: Request) {
+  if (!(await getSession())) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+  if (!TOKEN) {
+    return NextResponse.json(
+      { error: "CONTRACT_ADMIN_API_TOKEN 미설정" },
+      { status: 503 },
+    );
+  }
 
-  const schedules = scheduleTypes.map((type) => {
-    // KST 기준으로 스케줄 시간 계산
-    const scheduledAt = calculateSmsScheduleTime(useDate, type, productType)
+  const action = new URL(request.url).searchParams.get("action");
+  if (action !== "sync-calendar") {
+    return NextResponse.json({ error: "지원하지 않는 요청" }, { status: 400 });
+  }
 
-    return {
-      reservation_id: reservationId,
-      schedule_type: type,
-      scheduled_at: scheduledAt.toISOString(),
-      status: 'pending',
+  try {
+    const res = await fetch(`${UPSTREAM}/sync-calendar`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${TOKEN}`,
+        "Content-Type": "application/json",
+      },
+      body: "{}",
+      cache: "no-store",
+    });
+    const body = await res.json().catch(() => null);
+    if (!res.ok) {
+      return NextResponse.json(
+        { error: body?.message ?? "동기화 실패" },
+        { status: 502 },
+      );
     }
-  })
-
-  await supabaseAdmin.from('sms_schedules').insert(schedules)
+    return NextResponse.json(body);
+  } catch {
+    return NextResponse.json({ error: "동기화 실패" }, { status: 500 });
+  }
 }

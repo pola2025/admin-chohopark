@@ -1,607 +1,526 @@
-'use client'
+"use client";
 
-import { useState, useEffect, useCallback, Fragment } from 'react'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table'
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
-import { Label } from '@/components/ui/label'
-import { Textarea } from '@/components/ui/textarea'
-import { DatePicker } from '@/components/ui/date-picker'
-import { toast } from 'sonner'
-import { format, parseISO } from 'date-fns'
-import { Reservation, PRODUCT_TYPES, PAYMENT_STATUS } from '@/types/reservation'
+import { Fragment, useCallback, useEffect, useState } from "react";
+import { toast } from "sonner";
+import { Icon } from "@/components/ui/icon";
+
+interface Reservation {
+  id: string;
+  source: "contract" | "calendar" | "manual";
+  contractId: string | null;
+  contractNumber: string | null;
+  calendarEventId: string | null;
+  productType: string;
+  productName: string;
+  useDate: string;
+  endDate: string | null;
+  startTime: string | null;
+  endTime: string | null;
+  peopleCount: number;
+  adultCount: number;
+  childCount: number;
+  company: string;
+  customerName: string;
+  phone: string;
+  email: string;
+  contactTitle: string;
+  totalAmount: number;
+  depositAmount: number;
+  balanceAmount: number;
+  paymentStatus: "pending" | "partial" | "completed";
+  status: "active" | "cancelled";
+  needsReview: boolean;
+  reviewReason: string | null;
+  notes: string;
+  createdAt: string;
+}
+
+const PAGE_SIZE = 50;
+const WEEKDAYS = ["일", "월", "화", "수", "목", "금", "토"];
+
+const SOURCE_LABEL: Record<string, string> = {
+  contract: "약정서",
+  calendar: "캘린더",
+  manual: "직접 입력",
+};
+
+const PAYMENT_LABEL: Record<string, string> = {
+  pending: "미확인",
+  partial: "예약금 확인",
+  completed: "완납",
+};
+
+const PAYMENT_STYLE: Record<string, string> = {
+  pending:
+    "bg-[var(--gov-warn-weak)] text-[var(--gov-warn)] border-[var(--gov-warn)]/30",
+  partial:
+    "bg-[var(--gov-brand-weak)] text-[var(--gov-brand)] border-[var(--gov-brand)]/30",
+  completed:
+    "bg-[var(--gov-ok-weak)] text-[var(--gov-ok)] border-[var(--gov-ok)]/30",
+};
+
+function money(value: number): string {
+  return value.toLocaleString("ko-KR");
+}
+
+/** `2026-09-15` 를 `09-15 (화)` 로 바꾼다. */
+function shortDate(value: string): string {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
+  if (!m) return value;
+  const weekday = WEEKDAYS[new Date(`${value}T00:00:00Z`).getUTCDay()] ?? "";
+  return `${m[2]}-${m[3]} (${weekday})`;
+}
+
+/** 약정서에는 하이픈 없이 저장된 번호가 섞여 있어 보기 좋게 끊는다. */
+function formatPhone(value: string): string {
+  const d = value.replace(/[^0-9]/g, "");
+  if (d.length === 11) return `${d.slice(0, 3)}-${d.slice(3, 7)}-${d.slice(7)}`;
+  if (d.length === 10) return `${d.slice(0, 3)}-${d.slice(3, 6)}-${d.slice(6)}`;
+  return value;
+}
+
+/** 예약 한 건의 자세한 내용. 표의 해당 행 바로 아래에서 펼친다. */
+function DetailPanel({
+  item,
+  onPatch,
+  busy,
+}: {
+  item: Reservation;
+  onPatch: (id: string, body: Record<string, unknown>) => Promise<void>;
+  busy: boolean;
+}) {
+  return (
+    <div className="space-y-3 px-5 py-4">
+      {item.needsReview && item.reviewReason ? (
+        <div className="flex items-start gap-2 border border-[var(--gov-warn)]/40 bg-[var(--gov-warn-weak)] p-3 text-[12.5px] text-[var(--gov-warn)]">
+          <Icon name="alert" size={16} className="mt-0.5 shrink-0" />
+          <div className="flex-1">
+            {item.reviewReason}
+            <button
+              type="button"
+              disabled={busy}
+              onClick={() => void onPatch(item.id, { action: "clearReview" })}
+              className="ml-3 underline disabled:opacity-50"
+            >
+              확인했음
+            </button>
+          </div>
+        </div>
+      ) : null}
+
+      <div className="grid gap-x-6 gap-y-1.5 text-[12.5px] sm:grid-cols-2">
+        <div>
+          <span className="text-[var(--gov-ink-sub)]">담당자 </span>
+          {item.customerName || "-"}
+          {item.contactTitle ? ` ${item.contactTitle}` : ""}
+        </div>
+        <div>
+          <span className="text-[var(--gov-ink-sub)]">연락처 </span>
+          {item.phone ? formatPhone(item.phone) : "-"}
+        </div>
+        <div>
+          <span className="text-[var(--gov-ink-sub)]">이메일 </span>
+          {item.email || "-"}
+        </div>
+        <div>
+          <span className="text-[var(--gov-ink-sub)]">이용 시각 </span>
+          {item.startTime && item.endTime
+            ? `${item.startTime} ~ ${item.endTime}`
+            : "-"}
+        </div>
+        <div>
+          <span className="text-[var(--gov-ink-sub)]">총 이용료 </span>
+          {item.totalAmount ? `${money(item.totalAmount)}원` : "-"}
+        </div>
+        <div>
+          <span className="text-[var(--gov-ink-sub)]">예약금 </span>
+          {item.depositAmount ? `${money(item.depositAmount)}원` : "-"}
+        </div>
+        <div>
+          <span className="text-[var(--gov-ink-sub)]">잔금 </span>
+          {item.balanceAmount ? `${money(item.balanceAmount)}원` : "-"}
+        </div>
+        <div>
+          <span className="text-[var(--gov-ink-sub)]">등록 경로 </span>
+          {SOURCE_LABEL[item.source] ?? item.source}
+          {item.contractNumber ? (
+            <a
+              href={`/dashboard/contracts/${item.contractId}`}
+              className="ml-2 text-[var(--gov-brand)] underline"
+            >
+              {item.contractNumber}
+            </a>
+          ) : null}
+        </div>
+      </div>
+
+      {item.notes ? (
+        <div className="border border-[var(--gov-line)] bg-white p-3">
+          <p className="mb-1 text-[11.5px] font-semibold text-[var(--gov-ink-sub)]">
+            이용 내역
+          </p>
+          <pre className="whitespace-pre-wrap font-sans text-[12.5px] leading-relaxed text-[var(--gov-ink-sub)]">
+            {item.notes}
+          </pre>
+        </div>
+      ) : null}
+
+      {item.status === "active" ? (
+        <div className="flex flex-wrap items-center gap-2 border-t border-[var(--gov-line)] pt-3">
+          <span className="text-[12.5px] text-[var(--gov-ink-sub)]">
+            입금 상태
+          </span>
+          {(["pending", "partial", "completed"] as const).map((value) => (
+            <button
+              key={value}
+              type="button"
+              disabled={busy || item.paymentStatus === value}
+              onClick={() => void onPatch(item.id, { paymentStatus: value })}
+              className={`border px-2.5 py-1 text-[12.5px] transition-colors disabled:cursor-default ${
+                item.paymentStatus === value
+                  ? PAYMENT_STYLE[value]
+                  : "border-[var(--gov-line-strong)] bg-white hover:bg-gray-50"
+              }`}
+            >
+              {PAYMENT_LABEL[value]}
+            </button>
+          ))}
+          <button
+            type="button"
+            disabled={busy}
+            onClick={() => {
+              if (!confirm("이 예약을 취소로 표시할까요?")) return;
+              void onPatch(item.id, { action: "cancel" });
+            }}
+            className="ml-auto border border-[var(--gov-danger)]/40 px-2.5 py-1 text-[12.5px] text-[var(--gov-danger)] hover:bg-[var(--gov-danger-weak)] disabled:opacity-50"
+          >
+            예약 취소
+          </button>
+        </div>
+      ) : null}
+    </div>
+  );
+}
 
 export default function ReservationsPage() {
-  const [reservations, setReservations] = useState<Reservation[]>([])
-  const [loading, setLoading] = useState(true)
-  const [isDialogOpen, setIsDialogOpen] = useState(false)
-  const [editingReservation, setEditingReservation] = useState<Reservation | null>(null)
-  const [filter, setFilter] = useState({ status: 'all', from: '', to: '' })
-  const [pagination, setPagination] = useState({ page: 1, total: 0, totalPages: 0 })
-  // 약정서에서 넘어온 건은 이용 내역이 길어서 접어 두고 필요할 때만 편다.
-  const [expandedId, setExpandedId] = useState<number | null>(null)
+  const [items, setItems] = useState<Reservation[]>([]);
+  const [total, setTotal] = useState(0);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [loading, setLoading] = useState(true);
+  const [syncing, setSyncing] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [openId, setOpenId] = useState<string | null>(null);
 
-  const fetchReservations = useCallback(async () => {
-    setLoading(true)
+  const [status, setStatus] = useState<"active" | "cancelled" | "all">(
+    "active",
+  );
+  const [source, setSource] = useState<"all" | "contract" | "calendar">("all");
+  const [needsReview, setNeedsReview] = useState(false);
+  const [queryInput, setQueryInput] = useState("");
+  const [query, setQuery] = useState("");
+
+  const load = useCallback(async () => {
+    setLoading(true);
     const params = new URLSearchParams({
-      page: pagination.page.toString(),
-      limit: '20',
-      ...(filter.status !== 'all' && { status: filter.status }),
-      ...(filter.from && { from: filter.from }),
-      ...(filter.to && { to: filter.to }),
-    })
-
+      page: String(page),
+      pageSize: String(PAGE_SIZE),
+      status,
+    });
+    if (source !== "all") params.set("source", source);
+    if (needsReview) params.set("needsReview", "1");
+    if (query) params.set("query", query);
     try {
-      const res = await fetch(`/api/reservations?${params}`)
-      const data = await res.json()
-      setReservations(data.data || [])
-      setPagination(prev => ({ ...prev, ...data.pagination }))
+      const res = await fetch(`/api/reservations?${params}`);
+      const body = await res.json();
+      setItems(body.items ?? []);
+      setTotal(body.total ?? 0);
+      setTotalPages(body.totalPages ?? 1);
     } catch {
-      toast.error('예약 목록을 불러오지 못했습니다')
+      setItems([]);
+      toast.error("예약을 불러오지 못했습니다");
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }, [pagination.page, filter])
+  }, [page, status, source, needsReview, query]);
 
   useEffect(() => {
-    fetchReservations()
-  }, [fetchReservations])
+    void load();
+  }, [load]);
 
-  const handleDelete = async (id: number) => {
-    if (!confirm('정말 삭제하시겠습니까?')) return
-
+  const syncCalendar = async () => {
+    setSyncing(true);
     try {
-      const res = await fetch(`/api/reservations/${id}`, { method: 'DELETE' })
-      if (res.ok) {
-        toast.success('예약이 삭제되었습니다')
-        fetchReservations()
-      } else {
-        toast.error('삭제 실패')
+      const res = await fetch("/api/reservations?action=sync-calendar", {
+        method: "POST",
+      });
+      const body = await res.json();
+      if (!res.ok) {
+        toast.error(body.error ?? "동기화하지 못했습니다");
+        return;
       }
+      const parts = [`새 예약 ${body.created}건`, `갱신 ${body.updated}건`];
+      if (body.cancelled) parts.push(`취소 ${body.cancelled}건`);
+      if (body.needsReview?.length)
+        parts.push(`확인 필요 ${body.needsReview.length}건`);
+      toast.success(`캘린더를 읽었습니다 · ${parts.join(" · ")}`);
+      await load();
     } catch {
-      toast.error('삭제 중 오류 발생')
-    }
-  }
-
-  const openEditDialog = (reservation: Reservation) => {
-    setEditingReservation(reservation)
-    setIsDialogOpen(true)
-  }
-
-  // 결제 상태 토글
-  const togglePaymentStatus = async (reservation: Reservation) => {
-    const newStatus = reservation.payment_status === 'completed' ? 'pending' : 'completed'
-    try {
-      const res = await fetch(`/api/reservations/${reservation.id}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ payment_status: newStatus }),
-      })
-      if (res.ok) {
-        toast.success(newStatus === 'completed' ? '결제 완료 처리됨' : '미결제로 변경됨')
-        fetchReservations()
-      } else {
-        toast.error('상태 변경 실패')
-      }
-    } catch {
-      toast.error('상태 변경 중 오류 발생')
-    }
-  }
-
-  const openNewDialog = () => {
-    setEditingReservation(null)
-    setIsDialogOpen(true)
-  }
-
-  return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogTrigger asChild>
-            <Button onClick={openNewDialog}>+ 새 예약</Button>
-          </DialogTrigger>
-          <DialogContent className="w-[95vw] max-w-2xl max-h-[90vh] overflow-y-auto p-4 sm:p-6">
-            <DialogHeader>
-              <DialogTitle>
-                {editingReservation ? '예약 수정' : '새 예약 등록'}
-              </DialogTitle>
-            </DialogHeader>
-            <ReservationForm
-              reservation={editingReservation}
-              onSuccess={() => {
-                setIsDialogOpen(false)
-                fetchReservations()
-              }}
-            />
-          </DialogContent>
-        </Dialog>
-      </div>
-
-      {/* Filters */}
-      <Card>
-        <CardContent className="pt-4 sm:pt-6">
-          <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-3 sm:gap-4">
-            <div className="col-span-2 sm:col-span-1 flex items-center gap-2">
-              <Label className="shrink-0 text-sm">상태</Label>
-              <Select value={filter.status} onValueChange={(v) => setFilter(f => ({ ...f, status: v }))}>
-                <SelectTrigger className="flex-1 sm:w-32">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">전체</SelectItem>
-                  <SelectItem value="pending">미결제</SelectItem>
-                  <SelectItem value="partial">부분결제</SelectItem>
-                  <SelectItem value="completed">완료</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="flex items-center gap-2">
-              <Label className="shrink-0 text-sm">시작</Label>
-              <Input
-                type="date"
-                value={filter.from}
-                onChange={(e) => setFilter(f => ({ ...f, from: e.target.value }))}
-                className="flex-1 sm:w-36"
-              />
-            </div>
-            <div className="flex items-center gap-2">
-              <Label className="shrink-0 text-sm">종료</Label>
-              <Input
-                type="date"
-                value={filter.to}
-                onChange={(e) => setFilter(f => ({ ...f, to: e.target.value }))}
-                className="flex-1 sm:w-36"
-              />
-            </div>
-            <Button variant="outline" size="sm" className="col-span-2 sm:col-span-1" onClick={() => setFilter({ status: 'all', from: '', to: '' })}>
-              초기화
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* 예약 목록 */}
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-base lg:text-lg">예약 목록 ({pagination.total}건)</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {loading ? (
-            <div className="text-center py-10 text-gray-500">로딩 중...</div>
-          ) : reservations.length === 0 ? (
-            <div className="text-center py-10 text-gray-500">예약이 없습니다</div>
-          ) : (
-            <>
-              {/* 모바일 카드 뷰 */}
-              <div className="lg:hidden space-y-3">
-                {reservations.map((r) => (
-                  <div key={r.id} className="bg-white border rounded-sm p-3 sm:p-4 shadow-none overflow-hidden">
-                    <div className="flex justify-between items-start gap-2 mb-2">
-                      <div className="min-w-0 flex-1">
-                        <div className="font-semibold text-gray-900 truncate text-sm sm:text-base">
-                          {r.company_name || r.manager_name}
-                        </div>
-                        {r.company_name && (
-                          <div className="text-xs sm:text-sm text-gray-500 truncate">{r.manager_name}</div>
-                        )}
-                      </div>
-                      <button
-                        onClick={() => togglePaymentStatus(r)}
-                        className={`shrink-0 px-2 py-1 rounded text-xs font-medium transition-all active:scale-95
-                          ${r.payment_status === 'completed'
-                            ? 'bg-[var(--gov-ok-weak)] text-[var(--gov-ok)] border border-[var(--gov-ok)]/30'
-                            : 'bg-[var(--gov-warn-weak)] text-[var(--gov-warn)] border border-[var(--gov-warn)]/30'
-                          }`}
-                      >
-                        {r.payment_status === 'completed' ? '완료' : '미결제'}
-                      </button>
-                    </div>
-                    <div className="grid grid-cols-2 gap-x-2 gap-y-1 text-xs sm:text-sm mb-2">
-                      <div className="flex justify-between">
-                        <span className="text-gray-500">이용일</span>
-                        <span className="font-medium">{new Date(r.use_date).toLocaleDateString('ko-KR', { month: 'short', day: 'numeric' })}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-500">상품</span>
-                        <span className="font-medium truncate ml-1">{PRODUCT_TYPES[r.product_type]?.replace(' 워크샵', '').replace(' 수련회/야유회', '')}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-500">인원</span>
-                        <span className="font-medium">{r.people_count}명</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-500">예약금</span>
-                        <span className="font-medium">{(r.deposit_amount / 10000).toFixed(0)}만원</span>
-                      </div>
-                    </div>
-                    <div className="flex items-center justify-between gap-2 pt-2 border-t">
-                      <a href={`tel:${r.phone}`} className="text-xs sm:text-sm text-[var(--gov-brand)] font-medium">{r.phone}</a>
-                      <div className="flex gap-1.5">
-                        <Button size="sm" variant="outline" className="h-7 px-2 text-xs" onClick={() => openEditDialog(r)}>
-                          수정
-                        </Button>
-                        <Button size="sm" variant="destructive" className="h-7 px-2 text-xs" onClick={() => handleDelete(r.id)}>
-                          삭제
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              {/* 데스크톱 테이블 뷰 */}
-              <Table className="hidden lg:table">
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>이용일</TableHead>
-                    <TableHead>상품</TableHead>
-                    <TableHead>업체/담당자</TableHead>
-                    <TableHead>인원</TableHead>
-                    <TableHead>연락처</TableHead>
-                    <TableHead>예약금</TableHead>
-                    <TableHead>상태</TableHead>
-                    <TableHead>이용 내역</TableHead>
-                    <TableHead>관리</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {reservations.map((r) => (
-                    <Fragment key={r.id}>
-                    <TableRow>
-                      <TableCell className="font-medium">
-                        {new Date(r.use_date).toLocaleDateString('ko-KR')}
-                      </TableCell>
-                      <TableCell>{PRODUCT_TYPES[r.product_type]}</TableCell>
-                      <TableCell>
-                        <div>{r.company_name || '-'}</div>
-                        <div className="text-sm text-gray-500">{r.manager_name}</div>
-                      </TableCell>
-                      <TableCell>{r.people_count}명</TableCell>
-                      <TableCell>{r.phone}</TableCell>
-                      <TableCell>{r.deposit_amount.toLocaleString()}원</TableCell>
-                      <TableCell>
-                        <button
-                          onClick={() => togglePaymentStatus(r)}
-                          className={`px-3 py-1 text-sm font-medium transition-colors
-                            ${r.payment_status === 'completed'
-                              ? 'bg-[var(--gov-ok-weak)] text-[var(--gov-ok)] border border-[var(--gov-ok)]/30 hover:bg-[#dbe8dd]'
-                              : 'bg-[var(--gov-warn-weak)] text-[var(--gov-warn)] border border-[var(--gov-warn)]/30 hover:bg-[#efe5d3]'
-                            }`}
-                        >
-                          {r.payment_status === 'completed' ? '결제완료' : '미결제'}
-                        </button>
-                      </TableCell>
-                      <TableCell>
-                        {r.notes?.trim() ? (
-                          <button
-                            type="button"
-                            onClick={() => setExpandedId(expandedId === r.id ? null : r.id)}
-                            className="text-sm text-[var(--gov-brand)] underline"
-                          >
-                            {expandedId === r.id ? '접기' : '펼쳐 보기'}
-                          </button>
-                        ) : (
-                          <span className="text-sm text-[var(--gov-ink-sub)]">-</span>
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex gap-2">
-                          <Button size="sm" variant="outline" onClick={() => openEditDialog(r)}>
-                            수정
-                          </Button>
-                          <Button size="sm" variant="destructive" onClick={() => handleDelete(r.id)}>
-                            삭제
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                    {expandedId === r.id && r.notes?.trim() ? (
-                      <TableRow>
-                        <TableCell colSpan={9} className="bg-[#fafbfc] align-top">
-                          <pre className="whitespace-pre-wrap font-sans text-[12.5px] leading-relaxed text-[var(--gov-ink-sub)]">
-                            {r.notes}
-                          </pre>
-                        </TableCell>
-                      </TableRow>
-                    ) : null}
-                    </Fragment>
-                  ))}
-                </TableBody>
-              </Table>
-
-              {/* Pagination */}
-              {pagination.totalPages > 1 && (
-                <div className="flex justify-center gap-2 mt-4">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    disabled={pagination.page === 1}
-                    onClick={() => setPagination(p => ({ ...p, page: p.page - 1 }))}
-                  >
-                    이전
-                  </Button>
-                  <span className="py-2 px-4 text-sm">
-                    {pagination.page} / {pagination.totalPages}
-                  </span>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    disabled={pagination.page === pagination.totalPages}
-                    onClick={() => setPagination(p => ({ ...p, page: p.page + 1 }))}
-                  >
-                    다음
-                  </Button>
-                </div>
-              )}
-            </>
-          )}
-        </CardContent>
-      </Card>
-    </div>
-  )
-}
-
-// 상품별 인당 가격 (원)
-const PRODUCT_PRICES: Record<string, number> = {
-  overnight: 99000,  // 1박2일 워크샵: 인당 99,000원
-  daytrip: 66000,    // 당일 수련회/야유회: 인당 66,000원
-  training: 165000,  // 2박3일 수련회: 인당 165,000원
-}
-
-function ReservationForm({
-  reservation,
-  onSuccess,
-}: {
-  reservation: Reservation | null
-  onSuccess: () => void
-}) {
-  const [loading, setLoading] = useState(false)
-  const [formData, setFormData] = useState({
-    use_date: reservation?.use_date || '',
-    product_type: reservation?.product_type || 'overnight',
-    people_count: reservation?.people_count || 30,
-    company_name: reservation?.company_name || '',
-    manager_name: reservation?.manager_name || '',
-    phone: reservation?.phone || '',
-    email: reservation?.email || '',
-    deposit_amount: reservation?.deposit_amount || 500000,
-    payment_status: reservation?.payment_status || 'pending',
-    notes: reservation?.notes || '',
-  })
-
-  // 상품 또는 인원 변경 시 예약금 자동 계산
-  const updateDepositAmount = (productType: string, peopleCount: number) => {
-    const pricePerPerson = PRODUCT_PRICES[productType] || 50000
-    const calculatedAmount = pricePerPerson * peopleCount
-    setFormData(f => ({ ...f, deposit_amount: calculatedAmount }))
-  }
-
-  const handleProductChange = (value: string) => {
-    setFormData(f => ({ ...f, product_type: value as 'overnight' | 'daytrip' | 'training' }))
-    if (!reservation) {
-      updateDepositAmount(value, formData.people_count)
-    }
-  }
-
-  const handlePeopleCountChange = (value: number) => {
-    setFormData(f => ({ ...f, people_count: value }))
-    if (!reservation) {
-      updateDepositAmount(formData.product_type, value)
-    }
-  }
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setLoading(true)
-
-    try {
-      const url = reservation
-        ? `/api/reservations/${reservation.id}`
-        : '/api/reservations'
-      const method = reservation ? 'PUT' : 'POST'
-
-      const res = await fetch(url, {
-        method,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
-      })
-
-      if (res.ok) {
-        toast.success(reservation ? '예약이 수정되었습니다' : '예약이 등록되었습니다')
-        onSuccess()
-      } else {
-        const data = await res.json()
-        toast.error(data.error || '처리 실패')
-      }
-    } catch {
-      toast.error('오류가 발생했습니다')
+      toast.error("동기화하지 못했습니다");
     } finally {
-      setLoading(false)
+      setSyncing(false);
     }
-  }
+  };
+
+  const patch = async (id: string, body: Record<string, unknown>) => {
+    setBusy(true);
+    try {
+      const res = await fetch(`/api/reservations/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => null);
+        toast.error(err?.message ?? "변경하지 못했습니다");
+        return;
+      }
+      await load();
+    } catch {
+      toast.error("변경하지 못했습니다");
+    } finally {
+      setBusy(false);
+    }
+  };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-        <div className="space-y-2">
-          <Label>이용일 *</Label>
-          <DatePicker
-            date={formData.use_date ? parseISO(formData.use_date) : undefined}
-            onDateChange={(date) => {
-              setFormData(f => ({
-                ...f,
-                use_date: date ? format(date, 'yyyy-MM-dd') : ''
-              }))
+    <div className="space-y-5">
+      <p className="text-[13px] text-[var(--gov-ink-sub)]">
+        약정서에 입금이 확인된 예약과 구글 캘린더에 직접 적으신 예약이 함께
+        모입니다. 캘린더에 적으신 건은 아래 단추를 눌러 가져옵니다.
+      </p>
+
+      <section className="border border-[var(--gov-line)] bg-white">
+        <div className="flex flex-wrap items-center gap-2 border-b border-[var(--gov-line)] px-5 py-3">
+          <form
+            className="flex items-center gap-2"
+            onSubmit={(e) => {
+              e.preventDefault();
+              setPage(1);
+              setQuery(queryInput.trim());
             }}
-            placeholder="이용일을 선택하세요"
-            minDate={new Date()}
-          />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="product_type">상품 *</Label>
-          <Select
-            value={formData.product_type}
-            onValueChange={handleProductChange}
           >
-            <SelectTrigger>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {Object.entries(PRODUCT_TYPES).map(([key, label]) => (
-                <SelectItem key={key} value={key}>
-                  {label} ({(PRODUCT_PRICES[key] || 0).toLocaleString()}원/인)
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
+            <div className="relative">
+              <Icon
+                name="search"
+                size={16}
+                className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[var(--gov-ink-sub)]"
+              />
+              <input
+                value={queryInput}
+                onChange={(e) => setQueryInput(e.target.value)}
+                placeholder="업체 · 담당자 · 연락처"
+                className="h-9 w-52 border border-[var(--gov-line-strong)] pl-8 pr-3 text-[13px] outline-none focus:border-[var(--gov-brand)]"
+              />
+            </div>
+            <button
+              type="submit"
+              className="h-9 bg-[var(--gov-brand)] px-4 text-[13px] font-medium text-white"
+            >
+              검색
+            </button>
+          </form>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-        <div className="space-y-2">
-          <Label htmlFor="company_name">업체명</Label>
-          <Input
-            id="company_name"
-            value={formData.company_name}
-            onChange={(e) => setFormData(f => ({ ...f, company_name: e.target.value }))}
-            placeholder="(주)회사명"
-          />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="manager_name">담당자명 *</Label>
-          <Input
-            id="manager_name"
-            value={formData.manager_name}
-            onChange={(e) => setFormData(f => ({ ...f, manager_name: e.target.value }))}
-            required
-          />
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-        <div className="space-y-2">
-          <Label htmlFor="phone">연락처 *</Label>
-          <Input
-            id="phone"
-            value={formData.phone}
+          <select
+            value={status}
             onChange={(e) => {
-              // 숫자만 추출
-              const nums = e.target.value.replace(/\D/g, '')
-              // 010-0000-0000 형식으로 포맷
-              let formatted = nums
-              if (nums.length > 3 && nums.length <= 7) {
-                formatted = nums.slice(0, 3) + '-' + nums.slice(3)
-              } else if (nums.length > 7) {
-                formatted = nums.slice(0, 3) + '-' + nums.slice(3, 7) + '-' + nums.slice(7, 11)
-              }
-              setFormData(f => ({ ...f, phone: formatted }))
+              setPage(1);
+              setStatus(e.target.value as typeof status);
             }}
-            placeholder="010-1234-5678"
-            required
-          />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="email">이메일</Label>
-          <Input
-            id="email"
-            type="email"
-            value={formData.email}
-            onChange={(e) => setFormData(f => ({ ...f, email: e.target.value }))}
-          />
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-        <div className="space-y-2">
-          <Label htmlFor="people_count">인원 *</Label>
-          <Input
-            id="people_count"
-            type="number"
-            value={formData.people_count}
-            onChange={(e) => handlePeopleCountChange(parseInt(e.target.value) || 1)}
-            min={1}
-            required
-          />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="payment_status">결제상태</Label>
-          <Select
-            value={formData.payment_status}
-            onValueChange={(v) => setFormData(f => ({ ...f, payment_status: v as 'pending' | 'partial' | 'completed' }))}
+            className="h-9 border border-[var(--gov-line-strong)] px-2 text-[13px]"
           >
-            <SelectTrigger>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {Object.entries(PAYMENT_STATUS).map(([key, { label }]) => (
-                <SelectItem key={key} value={key}>{label}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
+            <option value="active">유효한 예약</option>
+            <option value="cancelled">취소된 예약</option>
+            <option value="all">전체</option>
+          </select>
 
-      <div className="space-y-2">
-        <Label htmlFor="deposit_amount">예약금 *</Label>
-        <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
-          <div className="relative flex-1">
-            <Input
-              id="deposit_amount"
-              type="text"
-              value={formData.deposit_amount.toLocaleString()}
+          <select
+            value={source}
+            onChange={(e) => {
+              setPage(1);
+              setSource(e.target.value as typeof source);
+            }}
+            className="h-9 border border-[var(--gov-line-strong)] px-2 text-[13px]"
+          >
+            <option value="all">모든 경로</option>
+            <option value="contract">약정서</option>
+            <option value="calendar">캘린더</option>
+          </select>
+
+          <label className="flex items-center gap-1.5 text-[13px]">
+            <input
+              type="checkbox"
+              checked={needsReview}
               onChange={(e) => {
-                const value = parseInt(e.target.value.replace(/,/g, '')) || 0
-                setFormData(f => ({ ...f, deposit_amount: value }))
+                setPage(1);
+                setNeedsReview(e.target.checked);
               }}
-              className="pr-8"
-              required
             />
-            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm">원</span>
-          </div>
-          <p className="text-xs sm:text-sm text-gray-500">
-            {PRODUCT_PRICES[formData.product_type]?.toLocaleString()}원 × {formData.people_count}명 = {(PRODUCT_PRICES[formData.product_type] * formData.people_count).toLocaleString()}원
-          </p>
+            확인 필요만
+          </label>
+
+          <button
+            type="button"
+            onClick={() => void syncCalendar()}
+            disabled={syncing}
+            className="ml-auto flex h-9 items-center gap-1.5 border border-[var(--gov-line-strong)] bg-white px-3 text-[13px] hover:bg-gray-50 disabled:opacity-50"
+          >
+            <Icon name="refresh" size={15} />
+            {syncing ? "읽는 중" : "캘린더 가져오기"}
+          </button>
+          <span className="text-[13px] text-[var(--gov-ink-sub)]">
+            {loading ? "불러오는 중" : `${total.toLocaleString()}건`}
+          </span>
         </div>
-      </div>
 
-      <div className="space-y-2">
-        <Label htmlFor="notes">메모</Label>
-        <Textarea
-          id="notes"
-          value={formData.notes}
-          onChange={(e) => setFormData(f => ({ ...f, notes: e.target.value }))}
-          rows={3}
-        />
-      </div>
+        {loading ? (
+          <p className="px-5 py-10 text-center text-[13px] text-[var(--gov-ink-sub)]">
+            불러오는 중입니다.
+          </p>
+        ) : items.length === 0 ? (
+          <p className="px-5 py-10 text-center text-[13px] text-[var(--gov-ink-sub)]">
+            조건에 맞는 예약이 없습니다.
+          </p>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[900px] text-[13px]">
+              <thead>
+                <tr className="border-t-2 border-[var(--gov-brand)] bg-[#fafbfc] text-left">
+                  <th className="w-[120px] px-5 py-2.5 font-semibold">
+                    이용일
+                  </th>
+                  <th className="w-[128px] px-3 py-2.5 font-semibold">구분</th>
+                  <th className="px-3 py-2.5 font-semibold">단체 · 담당자</th>
+                  <th className="w-[70px] px-3 py-2.5 text-right font-semibold">
+                    인원
+                  </th>
+                  <th className="w-[124px] px-3 py-2.5 text-right font-semibold">
+                    잔금
+                  </th>
+                  <th className="w-[112px] px-3 py-2.5 font-semibold">입금</th>
+                  <th className="w-[92px] px-3 py-2.5 font-semibold">경로</th>
+                  <th className="w-[96px] whitespace-nowrap px-5 py-2.5 font-semibold">
+                    상세
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {items.map((item) => (
+                  <Fragment key={item.id}>
+                    <tr
+                      className={`border-b border-[var(--gov-line)] align-top hover:bg-gray-50 ${
+                        item.status === "cancelled"
+                          ? "text-[var(--gov-ink-sub)] line-through"
+                          : ""
+                      }`}
+                    >
+                      <td className="px-5 py-3">
+                        {shortDate(item.useDate)}
+                        {item.endDate ? (
+                          <span className="block text-[11.5px] text-[var(--gov-ink-sub)]">
+                            ~ {shortDate(item.endDate)}
+                          </span>
+                        ) : null}
+                      </td>
+                      <td className="px-3 py-3">
+                        {item.productName || item.productType}
+                      </td>
+                      <td className="px-3 py-3">
+                        <div className="font-medium">
+                          {item.company || item.customerName || "-"}
+                          {item.needsReview ? (
+                            <Icon
+                              name="alert"
+                              size={14}
+                              className="ml-1.5 inline text-[var(--gov-warn)]"
+                            />
+                          ) : null}
+                        </div>
+                        <div className="text-[12px] text-[var(--gov-ink-sub)]">
+                          {item.customerName}
+                          {item.phone ? ` · ${formatPhone(item.phone)}` : ""}
+                        </div>
+                      </td>
+                      <td className="px-3 py-3 text-right">
+                        {item.peopleCount || "-"}
+                      </td>
+                      <td className="px-3 py-3 text-right">
+                        {item.balanceAmount ? money(item.balanceAmount) : "-"}
+                      </td>
+                      <td className="px-3 py-3">
+                        <span
+                          className={`inline-block border px-2 py-0.5 text-[11.5px] ${PAYMENT_STYLE[item.paymentStatus]}`}
+                        >
+                          {PAYMENT_LABEL[item.paymentStatus]}
+                        </span>
+                      </td>
+                      <td className="px-3 py-3 text-[12px] text-[var(--gov-ink-sub)]">
+                        {SOURCE_LABEL[item.source] ?? item.source}
+                      </td>
+                      <td className="px-5 py-3">
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setOpenId(openId === item.id ? null : item.id)
+                          }
+                          className="text-[var(--gov-brand)] underline"
+                        >
+                          {openId === item.id ? "접기" : "펼쳐 보기"}
+                        </button>
+                      </td>
+                    </tr>
+                    {openId === item.id ? (
+                      <tr className="border-b border-[var(--gov-line)]">
+                        <td colSpan={8} className="bg-[#fafbfc] p-0">
+                          <DetailPanel
+                            item={item}
+                            onPatch={patch}
+                            busy={busy}
+                          />
+                        </td>
+                      </tr>
+                    ) : null}
+                  </Fragment>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
 
-      <div className="flex justify-end gap-2 pt-4">
-        <Button type="submit" disabled={loading}>
-          {loading ? '처리 중...' : reservation ? '수정' : '등록'}
-        </Button>
-      </div>
-    </form>
-  )
+        {totalPages > 1 ? (
+          <div className="flex items-center justify-center gap-3 border-t border-[var(--gov-line)] px-5 py-3">
+            <button
+              type="button"
+              disabled={page <= 1}
+              onClick={() => setPage(page - 1)}
+              className="h-8 border border-[var(--gov-line-strong)] px-3 text-[13px] disabled:opacity-40"
+            >
+              이전
+            </button>
+            <span className="text-[13px]">
+              {page} / {totalPages}
+            </span>
+            <button
+              type="button"
+              disabled={page >= totalPages}
+              onClick={() => setPage(page + 1)}
+              className="h-8 border border-[var(--gov-line-strong)] px-3 text-[13px] disabled:opacity-40"
+            >
+              다음
+            </button>
+          </div>
+        ) : null}
+      </section>
+    </div>
+  );
 }
