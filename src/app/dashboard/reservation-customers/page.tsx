@@ -35,6 +35,14 @@ interface ReservationCustomer {
 const PAGE_SIZE = 20;
 const WEEKDAYS = ["일", "월", "화", "수", "목", "금", "토"];
 
+/** 약정서에는 하이픈 없이 저장된 번호가 섞여 있어 보기 좋게 끊는다. */
+function formatPhone(value: string): string {
+  const d = value.replace(/[^0-9]/g, "");
+  if (d.length === 11) return `${d.slice(0, 3)}-${d.slice(3, 7)}-${d.slice(7)}`;
+  if (d.length === 10) return `${d.slice(0, 3)}-${d.slice(3, 6)}-${d.slice(6)}`;
+  return value;
+}
+
 function money(value: number): string {
   return value.toLocaleString("ko-KR");
 }
@@ -209,7 +217,7 @@ export default function ReservationCustomersPage() {
                         href={`tel:${c.phone}`}
                         className="text-[var(--gov-brand)]"
                       >
-                        {c.phone}
+                        {formatPhone(c.phone)}
                       </a>
                     </td>
                     <td className="px-3 py-3">

@@ -207,7 +207,9 @@ export default function CustomersPage() {
                   <th className="w-[110px] px-3 py-2.5 font-semibold">
                     희망 이용일
                   </th>
-                  <th className="w-[100px] px-3 py-2.5 font-semibold">접수</th>
+                  <th className="w-[124px] whitespace-nowrap px-3 py-2.5 font-semibold">
+                    접수
+                  </th>
                   <th className="w-[110px] px-3 py-2.5 font-semibold">
                     최근 접수
                   </th>
@@ -253,7 +255,7 @@ export default function CustomersPage() {
                     </td>
                     <td className="px-3 py-3">
                       <span className="font-medium">{c.contact_total}회</span>
-                      <div className="text-[11.5px] text-[var(--gov-ink-sub)]">
+                      <div className="whitespace-nowrap text-[11.5px] text-[var(--gov-ink-sub)]">
                         견적 {c.quote_count} · 문의 {c.quick_count}
                       </div>
                     </td>
