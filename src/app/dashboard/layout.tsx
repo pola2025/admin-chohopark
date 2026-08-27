@@ -16,6 +16,7 @@ const NAV_GROUPS: Array<{ title: string; items: NavItem[] }> = [
       { name: "예약 관리", href: "/dashboard/reservations", icon: "calendar" },
       { name: "약정서 관리", href: "/dashboard/contracts", icon: "contract" },
       { name: "견적 문의", href: "/dashboard/inquiries", icon: "inbox" },
+      { name: "문의 고객", href: "/dashboard/customers", icon: "user" },
     ],
   },
   {
