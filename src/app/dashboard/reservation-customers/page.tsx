@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { Fragment, useCallback, useEffect, useState } from "react";
 import { Icon } from "@/components/ui/icon";
 
 interface Reservation {
@@ -67,6 +67,48 @@ function statusBadge(status: string) {
     className:
       "bg-[var(--gov-warn-weak)] text-[var(--gov-warn)] border-[var(--gov-warn)]/30",
   };
+}
+
+/** 한 고객의 예약 내역. 표의 해당 행 바로 아래에서 펼친다. */
+function ReservationPanel({ customer }: { customer: ReservationCustomer }) {
+  return (
+    <ul className="space-y-1.5 px-5 py-4">
+      {customer.reservations.map((r) => {
+        const badge = statusBadge(r.status);
+        return (
+          <li
+            key={r.id}
+            className="flex flex-wrap items-center gap-2 border border-[var(--gov-line)] bg-white px-3 py-2 text-[12.5px]"
+          >
+            <span className={`border px-1.5 py-0.5 text-[11.5px] ${badge.className}`}>
+              {badge.label}
+            </span>
+            <span className="font-medium">{dateWithWeekday(r.useDate)}</span>
+            {r.endDate ? (
+              <span className="text-[var(--gov-ink-sub)]">~ {r.endDate}</span>
+            ) : null}
+            <span>{r.productName}</span>
+            <span>{r.people}명</span>
+            <span className="text-[var(--gov-ink-sub)]">
+              총 {money(r.totalAmount)}원 · 잔금 {money(r.balanceAmount)}원
+            </span>
+            {r.calendarEventId ? (
+              <span className="flex items-center gap-1 text-[var(--gov-ok)]">
+                <Icon name="calendar" size={13} />
+                일정 등록됨
+              </span>
+            ) : null}
+            <a
+              href={`/dashboard/contracts/${r.id}`}
+              className="ml-auto text-[var(--gov-brand)] underline"
+            >
+              {r.contractNumber}
+            </a>
+          </li>
+        );
+      })}
+    </ul>
+  );
 }
 
 export default function ReservationCustomersPage() {
@@ -198,10 +240,8 @@ export default function ReservationCustomersPage() {
               </thead>
               <tbody>
                 {items.map((c) => (
-                  <tr
-                    key={c.phoneKey}
-                    className="border-b border-[var(--gov-line)] align-top hover:bg-gray-50"
-                  >
+                  <Fragment key={c.phoneKey}>
+                  <tr className="border-b border-[var(--gov-line)] align-top hover:bg-gray-50">
                     <td className="px-5 py-3">
                       <div className="font-medium">
                         {c.company?.trim() || c.customerName}
@@ -256,68 +296,19 @@ export default function ReservationCustomersPage() {
                       </button>
                     </td>
                   </tr>
+                  {openKey === c.phoneKey ? (
+                    <tr className="border-b border-[var(--gov-line)]">
+                      <td colSpan={7} className="bg-[#fafbfc] p-0">
+                        <ReservationPanel customer={c} />
+                      </td>
+                    </tr>
+                  ) : null}
+                  </Fragment>
                 ))}
               </tbody>
             </table>
           </div>
         )}
-
-        {openKey
-          ? (() => {
-              const target = items.find((c) => c.phoneKey === openKey);
-              if (!target) return null;
-              return (
-                <div className="border-t border-[var(--gov-line)] bg-[#fafbfc] px-5 py-4">
-                  <h3 className="mb-2 text-[13px] font-bold">
-                    예약 내역 · {target.company?.trim() || target.customerName}
-                  </h3>
-                  <ul className="space-y-1.5">
-                    {target.reservations.map((r) => {
-                      const badge = statusBadge(r.status);
-                      return (
-                        <li
-                          key={r.id}
-                          className="flex flex-wrap items-center gap-2 border border-[var(--gov-line)] bg-white px-3 py-2 text-[12.5px]"
-                        >
-                          <span
-                            className={`border px-1.5 py-0.5 text-[11.5px] ${badge.className}`}
-                          >
-                            {badge.label}
-                          </span>
-                          <span className="font-medium">
-                            {dateWithWeekday(r.useDate)}
-                          </span>
-                          {r.endDate ? (
-                            <span className="text-[var(--gov-ink-sub)]">
-                              ~ {r.endDate}
-                            </span>
-                          ) : null}
-                          <span>{r.productName}</span>
-                          <span>{r.people}명</span>
-                          <span className="text-[var(--gov-ink-sub)]">
-                            총 {money(r.totalAmount)}원 · 잔금{" "}
-                            {money(r.balanceAmount)}원
-                          </span>
-                          {r.calendarEventId ? (
-                            <span className="flex items-center gap-1 text-[var(--gov-ok)]">
-                              <Icon name="calendar" size={13} />
-                              일정 등록됨
-                            </span>
-                          ) : null}
-                          <a
-                            href={`/dashboard/contracts/${r.id}`}
-                            className="ml-auto text-[var(--gov-brand)] underline"
-                          >
-                            {r.contractNumber}
-                          </a>
-                        </li>
-                      );
-                    })}
-                  </ul>
-                </div>
-              );
-            })()
-          : null}
 
         {totalPages > 1 ? (
           <div className="flex items-center justify-center gap-3 border-t border-[var(--gov-line)] px-5 py-3">

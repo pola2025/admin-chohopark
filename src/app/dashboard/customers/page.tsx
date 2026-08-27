@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { Fragment, useCallback, useEffect, useState } from "react";
 import { Icon } from "@/components/ui/icon";
 
 /** 사람 단위로 묶인 고객 한 명 */
@@ -69,6 +69,75 @@ function kstDate(value: string): string {
   }).format(d);
 }
 
+/** 한 고객이 남긴 접수 이력. 표의 해당 행 바로 아래에서 펼친다. */
+function HistoryPanel({
+  loading,
+  items,
+}: {
+  loading: boolean;
+  items: HistoryItem[];
+}) {
+  if (loading) {
+    return (
+      <p className="px-5 py-4 text-[13px] text-[var(--gov-ink-sub)]">
+        불러오는 중입니다.
+      </p>
+    );
+  }
+  if (items.length === 0) {
+    return (
+      <p className="px-5 py-4 text-[13px] text-[var(--gov-ink-sub)]">
+        이력이 없습니다.
+      </p>
+    );
+  }
+  return (
+    <ul className="space-y-1.5 px-5 py-4">
+      {items.map((h) => (
+        <li
+          key={`${h.kind}-${h.id}`}
+          className="flex flex-wrap items-center gap-2 border border-[var(--gov-line)] bg-white px-3 py-2 text-[12.5px]"
+        >
+          <span
+            className={`px-1.5 py-0.5 text-[11.5px] ${
+              h.kind === "quote"
+                ? "bg-[var(--gov-brand-weak)] text-[var(--gov-brand)]"
+                : "bg-[#f1f2f5] text-[var(--gov-ink-sub)]"
+            }`}
+          >
+            {h.kind === "quote" ? "견적문의" : "빠른문의"}
+          </span>
+          <span className="text-[var(--gov-ink-sub)]">
+            {kstDateTime(h.created_at)}
+          </span>
+          <span>{h.product_name || "-"}</span>
+          {h.people_count ? <span>{h.people_count}명</span> : null}
+          {h.use_date ? (
+            <span className="text-[var(--gov-ink-sub)]">희망 {h.use_date}</span>
+          ) : null}
+          {h.total_amount ? <span>{h.total_amount}</span> : null}
+          {h.source_channel ? (
+            <span className="text-[var(--gov-ink-sub)]">
+              유입 {h.source_channel}
+            </span>
+          ) : null}
+          {h.pdf_r2_key ? (
+            <a
+              href={`/api/customers/quote-pdf/${h.id}`}
+              target="_blank"
+              rel="noreferrer"
+              className="ml-auto flex items-center gap-1 text-[var(--gov-brand)] underline"
+            >
+              <Icon name="download" size={14} />
+              보낸 견적서
+            </a>
+          ) : null}
+        </li>
+      ))}
+    </ul>
+  );
+}
+
 export default function CustomersPage() {
   const [items, setItems] = useState<Customer[]>([]);
   const [total, setTotal] = useState(0);
@@ -112,6 +181,7 @@ export default function CustomersPage() {
       return;
     }
     setOpenPhone(phone);
+    setHistory([]);
     setHistoryLoading(true);
     try {
       const res = await fetch(
@@ -220,126 +290,72 @@ export default function CustomersPage() {
               </thead>
               <tbody>
                 {items.map((c) => (
-                  <tr
-                    key={c.phone_key}
-                    className="border-b border-[var(--gov-line)] align-top hover:bg-gray-50"
-                  >
-                    <td className="px-5 py-3">
-                      <div className="font-medium">
-                        {c.customer_company?.trim() || c.customer_name}
-                      </div>
-                      <div className="text-[12px] text-[var(--gov-ink-sub)]">
-                        {c.customer_company?.trim() ? c.customer_name : ""}
-                        {c.customer_email ? ` · ${c.customer_email}` : ""}
-                      </div>
-                    </td>
-                    <td className="px-3 py-3">
-                      <a
-                        href={`tel:${c.customer_phone}`}
-                        className="text-[var(--gov-brand)]"
-                      >
-                        {c.customer_phone}
-                      </a>
-                    </td>
-                    <td className="px-3 py-3">
-                      {c.product_name || "-"}
-                      {c.people_count ? (
-                        <span className="text-[var(--gov-ink-sub)]">
-                          {" "}
-                          {c.people_count}명
-                        </span>
-                      ) : null}
-                    </td>
-                    <td className="px-3 py-3 text-[var(--gov-ink-sub)]">
-                      {c.use_date || "-"}
-                    </td>
-                    <td className="px-3 py-3">
-                      <span className="font-medium">{c.contact_total}회</span>
-                      <div className="whitespace-nowrap text-[11.5px] text-[var(--gov-ink-sub)]">
-                        견적 {c.quote_count} · 문의 {c.quick_count}
-                      </div>
-                    </td>
-                    <td className="px-3 py-3 text-[var(--gov-ink-sub)]">
-                      {kstDate(c.last_at)}
-                    </td>
-                    <td className="px-5 py-3">
-                      <button
-                        type="button"
-                        onClick={() => void openHistory(c.phone_key)}
-                        className="text-[var(--gov-brand)] underline"
-                      >
-                        {openPhone === c.phone_key ? "접기" : "펼쳐 보기"}
-                      </button>
-                    </td>
-                  </tr>
+                  <Fragment key={c.phone_key}>
+                    <tr className="border-b border-[var(--gov-line)] align-top hover:bg-gray-50">
+                      <td className="px-5 py-3">
+                        <div className="font-medium">
+                          {c.customer_company?.trim() || c.customer_name}
+                        </div>
+                        <div className="text-[12px] text-[var(--gov-ink-sub)]">
+                          {c.customer_company?.trim() ? c.customer_name : ""}
+                          {c.customer_email ? ` · ${c.customer_email}` : ""}
+                        </div>
+                      </td>
+                      <td className="px-3 py-3">
+                        <a
+                          href={`tel:${c.customer_phone}`}
+                          className="text-[var(--gov-brand)]"
+                        >
+                          {c.customer_phone}
+                        </a>
+                      </td>
+                      <td className="px-3 py-3">
+                        {c.product_name || "-"}
+                        {c.people_count ? (
+                          <span className="text-[var(--gov-ink-sub)]">
+                            {" "}
+                            {c.people_count}명
+                          </span>
+                        ) : null}
+                      </td>
+                      <td className="px-3 py-3 text-[var(--gov-ink-sub)]">
+                        {c.use_date || "-"}
+                      </td>
+                      <td className="px-3 py-3">
+                        <span className="font-medium">{c.contact_total}회</span>
+                        <div className="whitespace-nowrap text-[11.5px] text-[var(--gov-ink-sub)]">
+                          견적 {c.quote_count} · 문의 {c.quick_count}
+                        </div>
+                      </td>
+                      <td className="px-3 py-3 text-[var(--gov-ink-sub)]">
+                        {kstDate(c.last_at)}
+                      </td>
+                      <td className="px-5 py-3">
+                        <button
+                          type="button"
+                          onClick={() => void openHistory(c.phone_key)}
+                          className="text-[var(--gov-brand)] underline"
+                        >
+                          {openPhone === c.phone_key ? "접기" : "펼쳐 보기"}
+                        </button>
+                      </td>
+                    </tr>
+                    {openPhone === c.phone_key ? (
+                      <tr className="border-b border-[var(--gov-line)]">
+                        <td colSpan={7} className="bg-[#fafbfc] p-0">
+                          <HistoryPanel
+                            loading={historyLoading}
+                            items={history}
+                          />
+                        </td>
+                      </tr>
+                    ) : null}
+                  </Fragment>
                 ))}
               </tbody>
             </table>
           </div>
         )}
-
-        {openPhone ? (
-          <div className="border-t border-[var(--gov-line)] bg-[#fafbfc] px-5 py-4">
-            <h3 className="mb-2 text-[13px] font-bold">
-              접수 이력 · {openPhone}
-            </h3>
-            {historyLoading ? (
-              <p className="text-[13px] text-[var(--gov-ink-sub)]">
-                불러오는 중입니다.
-              </p>
-            ) : history.length === 0 ? (
-              <p className="text-[13px] text-[var(--gov-ink-sub)]">
-                이력이 없습니다.
-              </p>
-            ) : (
-              <ul className="space-y-1.5">
-                {history.map((h) => (
-                  <li
-                    key={`${h.kind}-${h.id}`}
-                    className="flex flex-wrap items-center gap-2 border border-[var(--gov-line)] bg-white px-3 py-2 text-[12.5px]"
-                  >
-                    <span
-                      className={`px-1.5 py-0.5 text-[11.5px] ${
-                        h.kind === "quote"
-                          ? "bg-[var(--gov-brand-weak)] text-[var(--gov-brand)]"
-                          : "bg-[#f1f2f5] text-[var(--gov-ink-sub)]"
-                      }`}
-                    >
-                      {h.kind === "quote" ? "견적문의" : "빠른문의"}
-                    </span>
-                    <span className="text-[var(--gov-ink-sub)]">
-                      {kstDateTime(h.created_at)}
-                    </span>
-                    <span>{h.product_name || "-"}</span>
-                    {h.people_count ? <span>{h.people_count}명</span> : null}
-                    {h.use_date ? (
-                      <span className="text-[var(--gov-ink-sub)]">
-                        희망 {h.use_date}
-                      </span>
-                    ) : null}
-                    {h.total_amount ? <span>{h.total_amount}</span> : null}
-                    {h.source_channel ? (
-                      <span className="text-[var(--gov-ink-sub)]">
-                        유입 {h.source_channel}
-                      </span>
-                    ) : null}
-                    {h.pdf_r2_key ? (
-                      <a
-                        href={`/api/customers/quote-pdf/${h.id}`}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="ml-auto flex items-center gap-1 text-[var(--gov-brand)] underline"
-                      >
-                        <Icon name="download" size={14} />
-                        보낸 견적서
-                      </a>
-                    ) : null}
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
-        ) : null}
 
         {totalPages > 1 ? (
           <div className="flex items-center justify-center gap-3 border-t border-[var(--gov-line)] px-5 py-3">
