@@ -31,6 +31,7 @@ export type IconName =
   | "download"
   | "refresh"
   | "user"
+  | "users"
   | "phone"
   | "mail"
   | "send"
@@ -115,6 +116,13 @@ const PATHS: Record<IconName, React.ReactNode> = {
     <>
       <circle cx="12" cy="8" r="4" />
       <path d="M4 21c0-4 3.6-6 8-6s8 2 8 6" />
+    </>
+  ),
+  users: (
+    <>
+      <circle cx="9" cy="8" r="3.5" />
+      <path d="M2 20c0-3.5 3.1-5.5 7-5.5s7 2 7 5.5" />
+      <path d="M16 5.5a3.5 3.5 0 0 1 0 7M18 20c0-2.6-1-4.3-2.5-5.3" />
     </>
   ),
   phone: (
