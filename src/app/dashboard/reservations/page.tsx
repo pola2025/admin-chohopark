@@ -409,7 +409,7 @@ export default function ReservationsPage() {
                   </th>
                   <th className="w-[112px] px-3 py-2.5 font-semibold">입금</th>
                   <th className="w-[92px] px-3 py-2.5 font-semibold">경로</th>
-                  <th className="w-[96px] whitespace-nowrap px-5 py-2.5 font-semibold">
+                  <th className="w-[112px] whitespace-nowrap px-5 py-2.5 font-semibold">
                     상세
                   </th>
                 </tr>
@@ -473,7 +473,7 @@ export default function ReservationsPage() {
                           onClick={() =>
                             setOpenId(openId === item.id ? null : item.id)
                           }
-                          className="text-[var(--gov-brand)] underline"
+                          className="whitespace-nowrap text-[var(--gov-brand)] underline"
                         >
                           {openId === item.id ? "접기" : "펼쳐 보기"}
                         </button>
