@@ -61,15 +61,15 @@ function MobileDataCard({
     <div
       className={`flex-shrink-0 w-[85%] snap-center ${
         isHighlighted
-          ? "bg-amber-50 border-amber-300"
+          ? "bg-[var(--gov-warn-weak)] border-[#cbb489]"
           : "bg-white border-gray-200"
-      } border rounded-xl p-4 shadow-sm`}
+      } border rounded-sm p-4 shadow-none`}
     >
       <div className="flex items-center justify-between mb-3">
         <div>
           <p
             className={`font-semibold ${
-              isHighlighted ? "text-amber-600" : "text-gray-900"
+              isHighlighted ? "text-[var(--gov-warn)]" : "text-gray-900"
             }`}
           >
             {period}
@@ -80,7 +80,7 @@ function MobileDataCard({
           <div
             className={`flex items-center text-xs px-2 py-1 rounded-full ${
               change > 0
-                ? "bg-green-100 text-green-700"
+                ? "bg-[#dbe8dd] text-[var(--gov-ok)]"
                 : "bg-red-100 text-red-700"
             }`}
           >
@@ -124,7 +124,7 @@ function MobileDataCard({
         <p className="text-gray-500 text-xs">세션수</p>
         <p
           className={`text-lg font-bold ${
-            isHighlighted ? "text-amber-600" : "text-blue-600"
+            isHighlighted ? "text-[var(--gov-warn)]" : "text-blue-600"
           }`}
         >
           {formatNumber(sessions)}
@@ -700,8 +700,8 @@ export function VisitorPeriodTable({
 
               {/* 전체 합계 행 */}
               {summary && daily.length > 0 && (
-                <tr className="bg-amber-50 font-semibold border-t-2 border-amber-300">
-                  <td className="px-3 py-3 font-bold text-amber-600">
+                <tr className="bg-[var(--gov-warn-weak)] font-semibold border-t-2 border-[#cbb489]">
+                  <td className="px-3 py-3 font-bold text-[var(--gov-warn)]">
                     전체 합계
                     <span className="text-xs text-gray-500 font-normal ml-2">
                       ({summary.date_range.start} ~ {summary.date_range.end})

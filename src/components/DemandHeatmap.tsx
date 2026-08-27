@@ -15,10 +15,10 @@ const VISIBLE_MONTHS = 4;
 
 function tone(count: number) {
   if (!count) return "bg-gray-50 text-gray-300";
-  if (count === 1) return "bg-emerald-100 text-emerald-900";
-  if (count === 2) return "bg-emerald-200 text-emerald-900";
-  if (count === 3) return "bg-emerald-400 text-white";
-  return "bg-emerald-600 text-white";
+  if (count === 1) return "bg-[#dce5f1] text-[#0e2140]";
+  if (count === 2) return "bg-[#b9cbe4] text-[#0e2140]";
+  if (count === 3) return "bg-[#4a75ad] text-white";
+  return "bg-[var(--gov-brand)] text-white";
 }
 
 function monthKey(year: number, month: number) {
@@ -69,7 +69,7 @@ export function DemandHeatmap({
   );
 
   return (
-    <section className="rounded-xl border border-gray-200 bg-white p-4">
+    <section className="rounded-sm border border-gray-200 bg-white p-4">
       <div className="mb-3 flex flex-wrap items-end justify-between gap-2">
         <div>
           <h2 className="text-sm font-bold text-gray-900">
@@ -84,23 +84,23 @@ export function DemandHeatmap({
           <div className="hidden items-center gap-1 text-xs text-gray-500 sm:flex">
             <span>적음</span>
             <span className="h-3.5 w-3.5 rounded bg-gray-50 ring-1 ring-gray-200" />
-            <span className="h-3.5 w-3.5 rounded bg-emerald-100" />
-            <span className="h-3.5 w-3.5 rounded bg-emerald-200" />
-            <span className="h-3.5 w-3.5 rounded bg-emerald-400" />
-            <span className="h-3.5 w-3.5 rounded bg-emerald-600" />
+            <span className="h-3.5 w-3.5 rounded bg-[#dce5f1]" />
+            <span className="h-3.5 w-3.5 rounded bg-[#b9cbe4]" />
+            <span className="h-3.5 w-3.5 rounded bg-[#4a75ad]" />
+            <span className="h-3.5 w-3.5 rounded bg-[var(--gov-brand)]" />
             <span>많음</span>
           </div>
           <div className="flex gap-1">
             <button
               onClick={() => setAnchor((prev) => shiftMonth(prev, -1))}
-              className="rounded-lg border border-gray-300 px-2.5 py-1 text-sm hover:bg-gray-50"
+              className="rounded-sm border border-gray-300 px-2.5 py-1 text-sm hover:bg-gray-50"
               aria-label="이전 달"
             >
               ‹
             </button>
             <button
               onClick={() => setAnchor((prev) => shiftMonth(prev, 1))}
-              className="rounded-lg border border-gray-300 px-2.5 py-1 text-sm hover:bg-gray-50"
+              className="rounded-sm border border-gray-300 px-2.5 py-1 text-sm hover:bg-gray-50"
               aria-label="다음 달"
             >
               ›
@@ -131,7 +131,7 @@ export function DemandHeatmap({
             return (
               <div
                 key={key}
-                className="rounded-lg border border-gray-200 p-2.5"
+                className="rounded-sm border border-gray-200 p-2.5"
               >
                 <div className="mb-2 flex items-baseline justify-between">
                   <h3 className="text-sm font-bold text-gray-900">
@@ -176,8 +176,8 @@ export function DemandHeatmap({
                         }
                         className={`flex aspect-square flex-col items-center justify-center rounded text-[11px] leading-none transition ${tone(count)} ${
                           active
-                            ? "ring-2 ring-emerald-700"
-                            : "hover:ring-2 hover:ring-emerald-400"
+                            ? "ring-2 ring-[var(--gov-brand)]"
+                            : "hover:ring-2 hover:ring-[#4a75ad]"
                         }`}
                       >
                         <span className="font-semibold">{day}</span>
@@ -213,8 +213,8 @@ export function DemandHeatmap({
                 }
                 className={`rounded-full px-2.5 py-1 text-xs font-semibold ${
                   selectedDate === row.use_date
-                    ? "bg-emerald-700 text-white"
-                    : "bg-emerald-50 text-emerald-800 hover:bg-emerald-100"
+                    ? "bg-[var(--gov-brand)] text-white"
+                    : "bg-[var(--gov-brand-weak)] text-[#132a4f] hover:bg-[#dce5f1]"
                 }`}
               >
                 {Number(month)}/{Number(day)} ({weekday}) {row.total_count}건 ·{" "}

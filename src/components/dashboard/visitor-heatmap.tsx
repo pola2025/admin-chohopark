@@ -224,8 +224,8 @@ function CalendarView({
             <div
               key={cell.date}
               style={cellStyle}
-              className={`aspect-square rounded-lg flex flex-col items-center justify-center relative transition-transform hover:scale-105 cursor-default ${
-                today ? "ring-2 ring-orange-400 ring-offset-1" : ""
+              className={`aspect-square rounded-sm flex flex-col items-center justify-center relative transition-transform hover:scale-105 cursor-default ${
+                today ? "ring-2 ring-[var(--gov-warn)] ring-offset-1" : ""
               }`}
               title={
                 cell.date
@@ -496,7 +496,7 @@ export function VisitorHeatmap({ daily, loading }: VisitorHeatmapProps) {
           </CardTitle>
           <div className="flex items-center gap-2">
             {/* 뷰 토글 */}
-            <div className="flex rounded-md border p-0.5">
+            <div className="flex rounded-sm border p-0.5">
               <Button
                 variant={view === "calendar" ? "secondary" : "ghost"}
                 size="sm"
@@ -517,7 +517,7 @@ export function VisitorHeatmap({ daily, loading }: VisitorHeatmapProps) {
               </Button>
             </div>
             {/* 메트릭 토글 */}
-            <div className="flex rounded-md border p-0.5">
+            <div className="flex rounded-sm border p-0.5">
               <Button
                 variant={metric === "visitors" ? "secondary" : "ghost"}
                 size="sm"

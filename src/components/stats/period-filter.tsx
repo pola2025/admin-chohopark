@@ -29,7 +29,7 @@ export function PeriodFilter({
   return (
     <div className={cn("space-y-2", className)}>
       <div className="flex flex-wrap items-center gap-2">
-        <div className="flex rounded-lg border bg-card p-1">
+        <div className="flex rounded-sm border bg-card p-1">
           {PERIOD_PRESETS.map((p) => (
             <Button
               key={p.key}

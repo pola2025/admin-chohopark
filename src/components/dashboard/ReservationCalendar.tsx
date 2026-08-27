@@ -26,8 +26,8 @@ const productTypeLabels: Record<string, string> = {
 
 const productTypeColors: Record<string, { bg: string; text: string; dot: string }> = {
   overnight: { bg: 'bg-blue-50', text: 'text-blue-700', dot: 'bg-blue-500' },
-  daytrip: { bg: 'bg-emerald-50', text: 'text-emerald-700', dot: 'bg-emerald-500' },
-  training: { bg: 'bg-purple-50', text: 'text-purple-700', dot: 'bg-purple-500' },
+  daytrip: { bg: 'bg-[var(--gov-brand-weak)]', text: 'text-[var(--gov-brand)]', dot: 'bg-[var(--gov-brand)]' },
+  training: { bg: 'bg-[#f1f2f5]', text: 'text-[#3f4653]', dot: 'bg-[var(--gov-ink-sub)]' },
 }
 
 const paymentStatusLabels: Record<string, string> = {
@@ -37,9 +37,9 @@ const paymentStatusLabels: Record<string, string> = {
 }
 
 const paymentStatusColors: Record<string, string> = {
-  pending: 'bg-amber-100 text-amber-700',
+  pending: 'bg-[#efe5d3] text-[var(--gov-warn)]',
   partial: 'bg-blue-100 text-blue-700',
-  completed: 'bg-emerald-100 text-emerald-700',
+  completed: 'bg-[#dce5f1] text-[var(--gov-brand)]',
 }
 
 export function ReservationCalendar({ reservations }: ReservationCalendarProps) {
@@ -80,28 +80,28 @@ export function ReservationCalendar({ reservations }: ReservationCalendarProps) 
             reserved: reservedDates,
           }}
           modifiersClassNames={{
-            reserved: 'bg-amber-100 text-amber-800 font-semibold',
+            reserved: 'bg-[#efe5d3] text-[#6d3b06] font-semibold',
           }}
-          className="rounded-lg border p-2 sm:p-4"
+          className="rounded-sm border p-2 sm:p-4"
           classNames={{
             months: 'flex flex-col',
             month: 'space-y-2 sm:space-y-4',
             month_caption: 'flex justify-center pt-1 relative items-center mb-2 sm:mb-4',
             caption_label: 'text-sm sm:text-base font-semibold',
             nav: 'flex items-center gap-1',
-            button_previous: 'absolute left-0 sm:left-1 h-7 w-7 sm:h-8 sm:w-8 bg-transparent p-0 opacity-50 hover:opacity-100 flex items-center justify-center rounded-md hover:bg-gray-100',
-            button_next: 'absolute right-0 sm:right-1 h-7 w-7 sm:h-8 sm:w-8 bg-transparent p-0 opacity-50 hover:opacity-100 flex items-center justify-center rounded-md hover:bg-gray-100',
+            button_previous: 'absolute left-0 sm:left-1 h-7 w-7 sm:h-8 sm:w-8 bg-transparent p-0 opacity-50 hover:opacity-100 flex items-center justify-center rounded-sm hover:bg-gray-100',
+            button_next: 'absolute right-0 sm:right-1 h-7 w-7 sm:h-8 sm:w-8 bg-transparent p-0 opacity-50 hover:opacity-100 flex items-center justify-center rounded-sm hover:bg-gray-100',
             month_grid: 'w-full border-collapse',
             weekdays: 'flex',
-            weekday: 'text-gray-500 rounded-md w-8 sm:w-10 lg:w-12 h-8 sm:h-10 font-medium text-xs sm:text-sm flex items-center justify-center',
+            weekday: 'text-gray-500 rounded-sm w-8 sm:w-10 lg:w-12 h-8 sm:h-10 font-medium text-xs sm:text-sm flex items-center justify-center',
             week: 'flex w-full',
             day: 'h-8 w-8 sm:h-10 sm:w-10 lg:h-12 lg:w-12 text-center text-xs sm:text-sm p-0 relative focus-within:relative focus-within:z-20',
             day_button: cn(
-              'h-7 w-7 sm:h-9 sm:w-9 lg:h-10 lg:w-10 p-0 font-normal rounded-lg text-xs sm:text-sm',
+              'h-7 w-7 sm:h-9 sm:w-9 lg:h-10 lg:w-10 p-0 font-normal rounded-sm text-xs sm:text-sm',
               'hover:bg-gray-100 focus:bg-gray-100 transition-colors'
             ),
-            selected: 'bg-emerald-600 text-white hover:bg-emerald-700 hover:text-white focus:bg-emerald-600 focus:text-white rounded-lg font-semibold',
-            today: 'ring-2 ring-emerald-500 ring-inset rounded-lg',
+            selected: 'bg-[var(--gov-brand)] text-white hover:bg-[var(--gov-brand)] hover:text-white focus:bg-[var(--gov-brand)] focus:text-white rounded-sm font-semibold',
+            today: 'ring-2 ring-[var(--gov-brand)] ring-inset rounded-sm',
             outside: 'text-gray-300',
             disabled: 'text-gray-300 cursor-not-allowed',
           }}
@@ -110,16 +110,16 @@ export function ReservationCalendar({ reservations }: ReservationCalendarProps) 
         {/* 범례 - 상품별 색상 */}
         <div className="flex flex-wrap gap-2 sm:gap-3 mt-3 sm:mt-4 px-1 sm:px-2 text-[10px] sm:text-xs text-gray-500">
           <span className="flex items-center gap-1">
-            <span className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded bg-amber-100 border border-amber-300"></span> 예약
+            <span className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded bg-[#efe5d3] border border-[#cbb489]"></span> 예약
           </span>
           <span className="flex items-center gap-1">
             <span className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded bg-blue-500"></span> 워크샵
           </span>
           <span className="flex items-center gap-1">
-            <span className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded bg-emerald-500"></span> 야유회
+            <span className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded bg-[var(--gov-brand)]"></span> 야유회
           </span>
           <span className="flex items-center gap-1">
-            <span className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded bg-purple-500"></span> 수련회
+            <span className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded bg-[var(--gov-ink-sub)]"></span> 수련회
           </span>
         </div>
       </div>
@@ -160,7 +160,7 @@ export function ReservationCalendar({ reservations }: ReservationCalendarProps) 
                 <div
                   key={res.id}
                   className={cn(
-                    'flex items-center gap-2 sm:gap-3 p-2 sm:p-3 rounded-lg cursor-pointer transition-colors',
+                    'flex items-center gap-2 sm:gap-3 p-2 sm:p-3 rounded-sm cursor-pointer transition-colors',
                     productColor.bg,
                     'hover:opacity-80'
                   )}
@@ -175,7 +175,7 @@ export function ReservationCalendar({ reservations }: ReservationCalendarProps) 
                     productColor.dot
                   )} />
 
-                  <div className="text-center min-w-[36px] sm:min-w-[44px] py-1 bg-white rounded-md shadow-sm">
+                  <div className="text-center min-w-[36px] sm:min-w-[44px] py-1 bg-white rounded-sm shadow-none">
                     <p className="text-[9px] sm:text-[10px] text-gray-400 uppercase">
                       {new Date(res.use_date).toLocaleDateString('ko-KR', { month: 'short' })}
                     </p>
@@ -219,13 +219,13 @@ export function ReservationCalendar({ reservations }: ReservationCalendarProps) 
         {/* 결제 상태 범례 */}
         <div className="flex gap-3 sm:gap-4 mt-3 sm:mt-4 pt-3 border-t text-[10px] sm:text-xs text-gray-500">
           <span className="flex items-center gap-1">
-            <span className="w-2 h-2 rounded-full bg-amber-500"></span> 미결제
+            <span className="w-2 h-2 rounded-full bg-[var(--gov-warn)]"></span> 미결제
           </span>
           <span className="flex items-center gap-1">
             <span className="w-2 h-2 rounded-full bg-blue-500"></span> 부분결제
           </span>
           <span className="flex items-center gap-1">
-            <span className="w-2 h-2 rounded-full bg-emerald-500"></span> 완료
+            <span className="w-2 h-2 rounded-full bg-[var(--gov-brand)]"></span> 완료
           </span>
         </div>
       </div>

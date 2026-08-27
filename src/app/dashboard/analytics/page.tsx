@@ -330,7 +330,6 @@ export default function AnalyticsPage() {
       {/* 헤더 */}
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">방문 통계</h1>
           <p className="text-muted-foreground">
             사이트 트래픽과 방문자 행동을 분석합니다.
           </p>

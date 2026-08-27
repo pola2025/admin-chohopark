@@ -108,7 +108,7 @@ function SummaryBox({
   icon?: React.ReactNode;
 }) {
   return (
-    <div className="rounded-lg bg-muted/50 p-3 text-center">
+    <div className="rounded-sm bg-muted/50 p-3 text-center">
       <p className="flex items-center justify-center gap-1 text-sm text-muted-foreground">
         {icon}
         {label}

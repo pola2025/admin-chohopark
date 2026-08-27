@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, Fragment } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -41,6 +41,8 @@ export default function ReservationsPage() {
   const [editingReservation, setEditingReservation] = useState<Reservation | null>(null)
   const [filter, setFilter] = useState({ status: 'all', from: '', to: '' })
   const [pagination, setPagination] = useState({ page: 1, total: 0, totalPages: 0 })
+  // 약정서에서 넘어온 건은 이용 내역이 길어서 접어 두고 필요할 때만 편다.
+  const [expandedId, setExpandedId] = useState<number | null>(null)
 
   const fetchReservations = useCallback(async () => {
     setLoading(true)
@@ -117,7 +119,6 @@ export default function ReservationsPage() {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold">예약 관리</h1>
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
             <Button onClick={openNewDialog}>+ 새 예약</Button>
@@ -197,7 +198,7 @@ export default function ReservationsPage() {
               {/* 모바일 카드 뷰 */}
               <div className="lg:hidden space-y-3">
                 {reservations.map((r) => (
-                  <div key={r.id} className="bg-white border rounded-lg p-3 sm:p-4 shadow-sm overflow-hidden">
+                  <div key={r.id} className="bg-white border rounded-sm p-3 sm:p-4 shadow-none overflow-hidden">
                     <div className="flex justify-between items-start gap-2 mb-2">
                       <div className="min-w-0 flex-1">
                         <div className="font-semibold text-gray-900 truncate text-sm sm:text-base">
@@ -211,8 +212,8 @@ export default function ReservationsPage() {
                         onClick={() => togglePaymentStatus(r)}
                         className={`shrink-0 px-2 py-1 rounded text-xs font-medium transition-all active:scale-95
                           ${r.payment_status === 'completed'
-                            ? 'bg-emerald-500 text-white'
-                            : 'bg-amber-100 text-amber-700 border border-amber-300'
+                            ? 'bg-[var(--gov-ok-weak)] text-[var(--gov-ok)] border border-[var(--gov-ok)]/30'
+                            : 'bg-[var(--gov-warn-weak)] text-[var(--gov-warn)] border border-[var(--gov-warn)]/30'
                           }`}
                       >
                         {r.payment_status === 'completed' ? '완료' : '미결제'}
@@ -262,12 +263,14 @@ export default function ReservationsPage() {
                     <TableHead>연락처</TableHead>
                     <TableHead>예약금</TableHead>
                     <TableHead>상태</TableHead>
+                    <TableHead>이용 내역</TableHead>
                     <TableHead>관리</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {reservations.map((r) => (
-                    <TableRow key={r.id}>
+                    <Fragment key={r.id}>
+                    <TableRow>
                       <TableCell className="font-medium">
                         {new Date(r.use_date).toLocaleDateString('ko-KR')}
                       </TableCell>
@@ -282,14 +285,27 @@ export default function ReservationsPage() {
                       <TableCell>
                         <button
                           onClick={() => togglePaymentStatus(r)}
-                          className={`px-3 py-1 rounded-md text-sm font-medium transition-all duration-200 active:scale-95
+                          className={`px-3 py-1 text-sm font-medium transition-colors
                             ${r.payment_status === 'completed'
-                              ? 'bg-emerald-500 text-white shadow hover:bg-blue-500 hover:shadow-xl hover:-translate-y-1'
-                              : 'bg-amber-100 text-amber-700 border border-amber-300 shadow hover:bg-blue-500 hover:text-white hover:border-blue-500 hover:shadow-xl hover:-translate-y-1'
+                              ? 'bg-[var(--gov-ok-weak)] text-[var(--gov-ok)] border border-[var(--gov-ok)]/30 hover:bg-[#dbe8dd]'
+                              : 'bg-[var(--gov-warn-weak)] text-[var(--gov-warn)] border border-[var(--gov-warn)]/30 hover:bg-[#efe5d3]'
                             }`}
                         >
                           {r.payment_status === 'completed' ? '결제완료' : '미결제'}
                         </button>
+                      </TableCell>
+                      <TableCell>
+                        {r.notes?.trim() ? (
+                          <button
+                            type="button"
+                            onClick={() => setExpandedId(expandedId === r.id ? null : r.id)}
+                            className="text-sm text-[var(--gov-brand)] underline"
+                          >
+                            {expandedId === r.id ? '접기' : '펼쳐 보기'}
+                          </button>
+                        ) : (
+                          <span className="text-sm text-[var(--gov-ink-sub)]">-</span>
+                        )}
                       </TableCell>
                       <TableCell>
                         <div className="flex gap-2">
@@ -302,6 +318,16 @@ export default function ReservationsPage() {
                         </div>
                       </TableCell>
                     </TableRow>
+                    {expandedId === r.id && r.notes?.trim() ? (
+                      <TableRow>
+                        <TableCell colSpan={9} className="bg-[#fafbfc] align-top">
+                          <pre className="whitespace-pre-wrap font-sans text-[12.5px] leading-relaxed text-[var(--gov-ink-sub)]">
+                            {r.notes}
+                          </pre>
+                        </TableCell>
+                      </TableRow>
+                    ) : null}
+                    </Fragment>
                   ))}
                 </TableBody>
               </Table>

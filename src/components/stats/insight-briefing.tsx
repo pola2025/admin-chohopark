@@ -73,7 +73,7 @@ export function InsightBriefing({
       <CardContent className="p-5">
         <div className="mb-3 flex items-center justify-between">
           <h2 className="flex items-center gap-2 text-sm font-semibold">
-            📋 인사이트 브리핑
+            인사이트 브리핑
             {!loading && (
               <span className="text-xs font-normal text-muted-foreground">
                 규칙 기반 자동 분석 · {insights.length}건 감지
@@ -84,7 +84,7 @@ export function InsightBriefing({
         {loading ? (
           <div className="grid gap-3 md:grid-cols-3">
             {[0, 1, 2].map((i) => (
-              <Skeleton key={i} className="h-24 rounded-lg" />
+              <Skeleton key={i} className="h-24 rounded-sm" />
             ))}
           </div>
         ) : insights.length === 0 ? (
@@ -114,7 +114,7 @@ function InsightCard({ insight }: { insight: Insight }) {
 
   return (
     <div
-      className="rounded-lg border p-3.5"
+      className="rounded-sm border p-3.5"
       style={{ borderLeft: `4px solid ${meta.border}` }}
     >
       <div className="mb-1.5 flex items-center gap-1.5 text-xs">

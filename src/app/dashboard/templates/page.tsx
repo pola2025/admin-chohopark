@@ -6,6 +6,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Textarea } from '@/components/ui/textarea'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
+import { Icon, type IconName } from '@/components/ui/icon'
 
 interface Template {
   id: number
@@ -14,17 +15,17 @@ interface Template {
   message_content: string
 }
 
-const PRODUCT_TABS = [
-  { key: 'overnight', label: '1박2일 워크샵', icon: '🏕️' },
-  { key: 'daytrip', label: '당일 야유회', icon: '☀️' },
-  { key: 'training', label: '2박3일 수련회', icon: '🎯' },
+const PRODUCT_TABS: Array<{ key: string; label: string; icon: IconName }> = [
+  { key: 'overnight', label: '1박2일 워크샵', icon: 'home' },
+  { key: 'daytrip', label: '당일 야유회', icon: 'calendar' },
+  { key: 'training', label: '2박3일 수련회', icon: 'template' },
 ]
 
 const SCHEDULE_TYPES: Record<string, { label: string; color: string }> = {
-  d_minus_1: { label: 'D-1 안내', color: 'bg-blue-500' },
-  d_day_morning: { label: '당일 아침', color: 'bg-orange-500' },
-  before_meal: { label: '식사 안내', color: 'bg-green-500' },
-  before_close: { label: '퇴실 안내', color: 'bg-purple-500' },
+  d_minus_1: { label: 'D-1 안내', color: 'bg-[var(--gov-brand)]' },
+  d_day_morning: { label: '당일 아침', color: 'bg-[#3d6ba5]' },
+  before_meal: { label: '식사 안내', color: 'bg-[var(--gov-ok)]' },
+  before_close: { label: '퇴실 안내', color: 'bg-[var(--gov-ink-sub)]' },
 }
 
 // 발송 시점 데이터
@@ -36,10 +37,10 @@ const SEND_SCHEDULE: Record<string, { d_minus_1: string; d_day_morning: string; 
     before_close: '익일 10:00',
     timeline: [
       { time: '전날 10:00', label: 'D-1 안내', color: 'bg-blue-500' },
-      { time: '당일 08:00', label: '당일 아침', color: 'bg-orange-500' },
+      { time: '당일 08:00', label: '당일 아침', color: 'bg-[var(--gov-warn)]' },
       { time: '당일 15:00', label: '입실', color: 'bg-gray-400' },
-      { time: '당일 17:30', label: '식사 안내', color: 'bg-green-500' },
-      { time: '익일 10:00', label: '퇴실 안내', color: 'bg-purple-500' },
+      { time: '당일 17:30', label: '식사 안내', color: 'bg-[var(--gov-ok)]' },
+      { time: '익일 10:00', label: '퇴실 안내', color: 'bg-[var(--gov-ink-sub)]' },
       { time: '익일 11:00', label: '퇴실', color: 'bg-gray-400' },
     ]
   },
@@ -50,10 +51,10 @@ const SEND_SCHEDULE: Record<string, { d_minus_1: string; d_day_morning: string; 
     before_close: '당일 16:00',
     timeline: [
       { time: '전날 10:00', label: 'D-1 안내', color: 'bg-blue-500' },
-      { time: '당일 08:00', label: '당일 아침', color: 'bg-orange-500' },
+      { time: '당일 08:00', label: '당일 아침', color: 'bg-[var(--gov-warn)]' },
       { time: '당일 10:00', label: '입실', color: 'bg-gray-400' },
-      { time: '당일 11:30', label: '식사 안내', color: 'bg-green-500' },
-      { time: '당일 16:00', label: '퇴실 안내', color: 'bg-purple-500' },
+      { time: '당일 11:30', label: '식사 안내', color: 'bg-[var(--gov-ok)]' },
+      { time: '당일 16:00', label: '퇴실 안내', color: 'bg-[var(--gov-ink-sub)]' },
       { time: '당일 17:00', label: '퇴실', color: 'bg-gray-400' },
     ]
   },
@@ -64,10 +65,10 @@ const SEND_SCHEDULE: Record<string, { d_minus_1: string; d_day_morning: string; 
     before_close: '3일차 10:00',
     timeline: [
       { time: '전날 10:00', label: 'D-1 안내', color: 'bg-blue-500' },
-      { time: '당일 08:00', label: '당일 아침', color: 'bg-orange-500' },
+      { time: '당일 08:00', label: '당일 아침', color: 'bg-[var(--gov-warn)]' },
       { time: '당일 15:00', label: '입실', color: 'bg-gray-400' },
-      { time: '당일 17:30', label: '식사 안내', color: 'bg-green-500' },
-      { time: '3일차 10:00', label: '퇴실 안내', color: 'bg-purple-500' },
+      { time: '당일 17:30', label: '식사 안내', color: 'bg-[var(--gov-ok)]' },
+      { time: '3일차 10:00', label: '퇴실 안내', color: 'bg-[var(--gov-ink-sub)]' },
       { time: '3일차 11:00', label: '퇴실', color: 'bg-gray-400' },
     ]
   },
@@ -141,18 +142,17 @@ export default function TemplatesPage() {
   return (
     <div className="space-y-6 max-w-4xl pb-[300px]">
       <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold">메시지 템플릿</h1>
       </div>
 
       {/* 변수 안내 */}
-      <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 text-sm text-amber-800">
+      <div className="bg-[var(--gov-warn-weak)] border border-[#e0d0b0] rounded-sm p-4 text-sm text-[#6d3b06]">
         <strong>사용 가능한 변수:</strong>
         <div className="mt-2 flex flex-wrap gap-2">
-          <code className="bg-amber-100 px-2 py-1 rounded">{'{company_name}'}</code>
-          <code className="bg-amber-100 px-2 py-1 rounded">{'{manager_name}'}</code>
-          <code className="bg-amber-100 px-2 py-1 rounded">{'{phone}'}</code>
-          <code className="bg-amber-100 px-2 py-1 rounded">{'{use_date}'}</code>
-          <code className="bg-amber-100 px-2 py-1 rounded">{'{people_count}'}</code>
+          <code className="bg-[#efe5d3] px-2 py-1 rounded">{'{company_name}'}</code>
+          <code className="bg-[#efe5d3] px-2 py-1 rounded">{'{manager_name}'}</code>
+          <code className="bg-[#efe5d3] px-2 py-1 rounded">{'{phone}'}</code>
+          <code className="bg-[#efe5d3] px-2 py-1 rounded">{'{use_date}'}</code>
+          <code className="bg-[#efe5d3] px-2 py-1 rounded">{'{people_count}'}</code>
         </div>
       </div>
 
@@ -163,13 +163,13 @@ export default function TemplatesPage() {
             key={tab.key}
             onClick={() => setActiveTab(tab.key)}
             className={cn(
-              'px-4 py-3 font-medium text-sm transition-all border-b-2 -mb-[2px]',
+              'flex items-center gap-2 px-4 py-3 font-medium text-sm transition-all border-b-2 -mb-[2px]',
               activeTab === tab.key
-                ? 'border-green-600 text-green-600 bg-green-50'
-                : 'border-transparent text-gray-500 hover:text-gray-700 hover:bg-gray-50'
+                ? 'border-[var(--gov-brand)] text-[var(--gov-brand)] bg-[var(--gov-brand-weak)]'
+                : 'border-transparent text-[var(--gov-ink-sub)] hover:bg-gray-50'
             )}
           >
-            <span className="mr-2">{tab.icon}</span>
+            <Icon name={tab.icon} size={17} />
             {tab.label}
           </button>
         ))}
@@ -179,7 +179,7 @@ export default function TemplatesPage() {
       <Card>
         <CardContent className="p-4">
           <h3 className="font-semibold text-gray-700 mb-4 flex items-center gap-2">
-            <span>📤</span> 발송 타임라인
+            <Icon name="send" size={17} className="text-[var(--gov-brand)]" /> 발송 타임라인
           </h3>
           <div className="relative">
             {/* 타임라인 선 */}
@@ -193,7 +193,10 @@ export default function TemplatesPage() {
                     'w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold z-10',
                     item.color
                   )}>
-                    {item.label === '입실' || item.label === '퇴실' ? '⏰' : '📩'}
+                    <Icon
+                      name={item.label === '입실' || item.label === '퇴실' ? 'clock' : 'message'}
+                      size={16}
+                    />
                   </div>
                   <div className="mt-2 text-center">
                     <p className="text-xs font-medium text-gray-600">{item.time}</p>
@@ -242,7 +245,7 @@ export default function TemplatesPage() {
                     className="font-mono text-sm"
                   />
                 ) : (
-                  <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-2xl p-4 text-sm whitespace-pre-wrap font-mono border border-green-200">
+                  <div className="bg-gradient-to-br from-[var(--gov-ok-weak)] to-[#dbe8dd] rounded-sm p-4 text-sm whitespace-pre-wrap font-mono border border-[#c2d8c6]">
                     {template.message_content}
                   </div>
                 )}

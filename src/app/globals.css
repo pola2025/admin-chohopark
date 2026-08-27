@@ -4,6 +4,19 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
+  --color-gov-ink: var(--gov-ink);
+  --color-gov-ink-sub: var(--gov-ink-sub);
+  --color-gov-line: var(--gov-line);
+  --color-gov-line-strong: var(--gov-line-strong);
+  --color-gov-bg: var(--gov-bg);
+  --color-gov-brand: var(--gov-brand);
+  --color-gov-brand-weak: var(--gov-brand-weak);
+  --color-gov-ok: var(--gov-ok);
+  --color-gov-ok-weak: var(--gov-ok-weak);
+  --color-gov-warn: var(--gov-warn);
+  --color-gov-warn-weak: var(--gov-warn-weak);
+  --color-gov-danger: var(--gov-danger);
+  --color-gov-danger-weak: var(--gov-danger-weak);
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
@@ -59,25 +72,40 @@
 }
 
 :root {
-  --radius: 0.625rem;
+  --radius: 0.125rem;
+
+  /* 관공서톤 개편 (2026-08-27) — 장식 없는 선·남색 강조·본문 1200px */
+  --gov-ink: #16191d;
+  --gov-ink-sub: #5c6470;
+  --gov-line: #d5d9e0;
+  --gov-line-strong: #b6bcc7;
+  --gov-bg: #f4f5f7;
+  --gov-brand: #1b3b6f;
+  --gov-brand-weak: #eef2f8;
+  --gov-ok: #1d5b2c;
+  --gov-ok-weak: #e8f0e9;
+  --gov-warn: #8a4b08;
+  --gov-warn-weak: #f5efe2;
+  --gov-danger: #9d2b2b;
+  --gov-danger-weak: #f6eaea;
   --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
+  --foreground: #16191d;
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.145 0 0);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
+  --primary: #1b3b6f;
+  --primary-foreground: #ffffff;
   --secondary: oklch(0.97 0 0);
   --secondary-foreground: oklch(0.205 0 0);
   --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
+  --muted-foreground: #5c6470;
   --accent: oklch(0.97 0 0);
   --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
+  --destructive: #9d2b2b;
+  --border: #d5d9e0;
+  --input: #b6bcc7;
+  --ring: #1b3b6f;
   --chart-1: oklch(0.646 0.222 41.116);
   --chart-2: oklch(0.6 0.118 184.704);
   --chart-3: oklch(0.398 0.07 227.392);
@@ -175,6 +203,10 @@
   }
   body {
     @apply bg-background text-foreground;
+    /* 한국어는 어절 단위로 끊는다. 기본값은 글자 단위라
+       좁은 칸에서 "함께"가 "함 / 께"처럼 갈라진다. */
+    word-break: keep-all;
+    overflow-wrap: break-word;
   }
 }
 

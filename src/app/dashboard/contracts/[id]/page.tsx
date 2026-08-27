@@ -115,7 +115,7 @@ export default function ContractDetailPage() {
   }
   if (!contract) {
     return (
-      <div className="mx-auto max-w-3xl rounded-xl border border-red-200 bg-red-50 p-8 text-center">
+      <div className="mx-auto max-w-3xl rounded-sm border border-red-200 bg-red-50 p-8 text-center">
         <p className="text-red-700">
           {message || "약정서를 찾을 수 없습니다."}
         </p>
@@ -161,7 +161,7 @@ export default function ContractDetailPage() {
         <button
           onClick={() => void load()}
           disabled={loading}
-          className="inline-flex items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700"
+          className="inline-flex items-center justify-center gap-2 rounded-sm border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700"
         >
           <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
           새로고침
@@ -171,23 +171,23 @@ export default function ContractDetailPage() {
       {message ? (
         <p
           role="alert"
-          className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700"
+          className="rounded-sm border border-red-200 bg-red-50 p-4 text-sm text-red-700"
         >
           {message}
         </p>
       ) : null}
 
       {notice ? (
-        <p className="rounded-lg border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-800">
+        <p className="rounded-sm border border-[#b9cbe4] bg-[var(--gov-brand-weak)] p-4 text-sm text-[#132a4f]">
           {notice}
         </p>
       ) : null}
 
       <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_380px]">
-        <section className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
+        <section className="overflow-hidden rounded-sm border border-gray-200 bg-white shadow-none">
           <div className="flex items-center justify-between border-b border-gray-200 px-5 py-4">
             <div className="flex items-center gap-2">
-              <FileText className="h-5 w-5 text-emerald-700" />
+              <FileText className="h-5 w-5 text-[var(--gov-brand)]" />
               <h2 className="font-semibold text-gray-900">발행 원본 (A4)</h2>
             </div>
             {!contract.originalHtml ? (
@@ -195,7 +195,7 @@ export default function ContractDetailPage() {
                 href={originalUrl}
                 target="_blank"
                 rel="noreferrer"
-                className="inline-flex items-center gap-1 text-sm font-medium text-emerald-700"
+                className="inline-flex items-center gap-1 text-sm font-medium text-[var(--gov-brand)]"
               >
                 새 창에서 열기 <ExternalLink className="h-4 w-4" />
               </a>
@@ -204,7 +204,7 @@ export default function ContractDetailPage() {
           <div className="min-h-[780px] bg-gray-100 p-3 sm:p-5">
             <iframe
               title={`${contract.contractNumber} 발행 원본`}
-              className="mx-auto h-[1050px] w-full max-w-[794px] border border-gray-300 bg-white shadow-sm"
+              className="mx-auto h-[1050px] w-full max-w-[794px] border border-gray-300 bg-white shadow-none"
               sandbox="allow-same-origin"
               src={contract.originalHtml ? undefined : originalUrl}
               srcDoc={contract.originalHtml || undefined}
@@ -213,9 +213,9 @@ export default function ContractDetailPage() {
         </section>
 
         <aside className="space-y-4">
-          <section className="rounded-xl border border-gray-200 bg-white p-5">
+          <section className="rounded-sm border border-gray-200 bg-white p-5">
             <div className="flex items-center gap-2">
-              <UserRound className="h-5 w-5 text-emerald-700" />
+              <UserRound className="h-5 w-5 text-[var(--gov-brand)]" />
               <h2 className="font-semibold text-gray-900">거래처 정보</h2>
             </div>
             <dl className="mt-4 grid grid-cols-[110px_1fr] gap-y-2 text-sm">
@@ -248,12 +248,12 @@ export default function ContractDetailPage() {
                     href={`/api/contract-proxy/${encodeURIComponent(id)}/document/business_license`}
                     target="_blank"
                     rel="noreferrer"
-                    className="inline-flex items-center gap-1 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-1.5 font-medium text-emerald-800"
+                    className="inline-flex items-center gap-1 rounded-sm border border-[#b9cbe4] bg-[var(--gov-brand-weak)] px-3 py-1.5 font-medium text-[#132a4f]"
                   >
                     사업자등록증 <ExternalLink className="h-3.5 w-3.5" />
                   </a>
                 ) : (
-                  <span className="rounded-lg border border-gray-200 px-3 py-1.5 text-gray-400">
+                  <span className="rounded-sm border border-gray-200 px-3 py-1.5 text-gray-400">
                     사업자등록증 없음
                   </span>
                 )}
@@ -262,12 +262,12 @@ export default function ContractDetailPage() {
                     href={`/api/contract-proxy/${encodeURIComponent(id)}/document/business_card`}
                     target="_blank"
                     rel="noreferrer"
-                    className="inline-flex items-center gap-1 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-1.5 font-medium text-emerald-800"
+                    className="inline-flex items-center gap-1 rounded-sm border border-[#b9cbe4] bg-[var(--gov-brand-weak)] px-3 py-1.5 font-medium text-[#132a4f]"
                   >
                     담당자 명함 <ExternalLink className="h-3.5 w-3.5" />
                   </a>
                 ) : (
-                  <span className="rounded-lg border border-gray-200 px-3 py-1.5 text-gray-400">
+                  <span className="rounded-sm border border-gray-200 px-3 py-1.5 text-gray-400">
                     명함 없음
                   </span>
                 )}
@@ -275,7 +275,7 @@ export default function ContractDetailPage() {
             </div>
           </section>
 
-          <section className="rounded-xl border border-gray-200 bg-white p-5">
+          <section className="rounded-sm border border-gray-200 bg-white p-5">
             <h2 className="font-semibold text-gray-900">견적·이용 정보</h2>
             <dl className="mt-4 grid grid-cols-[110px_1fr] gap-y-2 text-sm">
               <dt className="text-gray-500">이용상품</dt>
@@ -291,7 +291,7 @@ export default function ContractDetailPage() {
               <dt className="text-gray-500">개별할인</dt>
               <dd>{money(contract.discountAmount)}</dd>
               <dt className="text-gray-500">총 이용금액</dt>
-              <dd className="text-lg font-bold text-emerald-700">
+              <dd className="text-lg font-bold text-[var(--gov-brand)]">
                 {money(contract.totalAmount)}
               </dd>
               <dt className="text-gray-500">계약금</dt>
@@ -301,12 +301,12 @@ export default function ContractDetailPage() {
             </dl>
           </section>
 
-          <section className="rounded-xl border border-gray-200 bg-white p-5">
+          <section className="rounded-sm border border-gray-200 bg-white p-5">
             <h2 className="font-semibold text-gray-900">동의·입금 상태</h2>
             <div className="mt-4 space-y-3 text-sm">
               <div className="flex gap-3">
                 <CheckCircle2
-                  className={`mt-0.5 h-5 w-5 ${contract.signedAt ? "text-emerald-600" : "text-gray-300"}`}
+                  className={`mt-0.5 h-5 w-5 ${contract.signedAt ? "text-[var(--gov-brand)]" : "text-gray-300"}`}
                 />
                 <p>
                   <strong className="block text-gray-900">
@@ -320,7 +320,7 @@ export default function ContractDetailPage() {
               </div>
               <div className="flex gap-3">
                 <CheckCircle2
-                  className={`mt-0.5 h-5 w-5 ${contract.depositReceivedAt ? "text-emerald-600" : "text-gray-300"}`}
+                  className={`mt-0.5 h-5 w-5 ${contract.depositReceivedAt ? "text-[var(--gov-brand)]" : "text-gray-300"}`}
                 />
                 <p>
                   <strong className="block text-gray-900">
@@ -333,7 +333,7 @@ export default function ContractDetailPage() {
               </div>
               <div className="flex gap-3">
                 <CheckCircle2
-                  className={`mt-0.5 h-5 w-5 ${contract.confirmedAt ? "text-emerald-600" : "text-gray-300"}`}
+                  className={`mt-0.5 h-5 w-5 ${contract.confirmedAt ? "text-[var(--gov-brand)]" : "text-gray-300"}`}
                 />
                 <p>
                   <strong className="block text-gray-900">
@@ -346,7 +346,7 @@ export default function ContractDetailPage() {
               </div>
               <div className="flex gap-3">
                 <CheckCircle2
-                  className={`mt-0.5 h-5 w-5 ${contract.confirmationEmailSentAt ? "text-emerald-600" : "text-gray-300"}`}
+                  className={`mt-0.5 h-5 w-5 ${contract.confirmationEmailSentAt ? "text-[var(--gov-brand)]" : "text-gray-300"}`}
                 />
                 <p>
                   <strong className="block text-gray-900">
@@ -365,7 +365,7 @@ export default function ContractDetailPage() {
                 type="button"
                 onClick={() => void deposit()}
                 disabled={!canDeposit || busy}
-                className="rounded-lg bg-emerald-700 px-4 py-2.5 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50"
+                className="rounded-sm bg-[var(--gov-brand)] px-4 py-2.5 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {contract.depositReceivedAt
                   ? "예약금 확인 완료"
@@ -378,7 +378,7 @@ export default function ContractDetailPage() {
                   type="button"
                   onClick={() => void cancel()}
                   disabled={busy}
-                  className="rounded-lg border border-red-200 px-4 py-2.5 text-sm font-medium text-red-700 hover:bg-red-50 disabled:opacity-50"
+                  className="rounded-sm border border-red-200 px-4 py-2.5 text-sm font-medium text-red-700 hover:bg-red-50 disabled:opacity-50"
                 >
                   약정 취소 처리
                 </button>
@@ -386,7 +386,7 @@ export default function ContractDetailPage() {
             </div>
           </section>
 
-          <section className="rounded-xl border border-gray-200 bg-white p-5">
+          <section className="rounded-sm border border-gray-200 bg-white p-5">
             <h2 className="font-semibold text-gray-900">처리 이력</h2>
             {contract.events.length ? (
               <ol className="mt-4 space-y-4 border-l border-gray-200 pl-4">

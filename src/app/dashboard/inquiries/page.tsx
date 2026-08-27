@@ -45,18 +45,18 @@ const PAGE_SIZE = 50;
 
 function kindBadge(kind: string) {
   return kind === "quote"
-    ? "bg-emerald-100 text-emerald-800"
+    ? "bg-[#dce5f1] text-[#132a4f]"
     : "bg-blue-100 text-blue-800";
 }
 
 function sourceBadge(src: string | null) {
   const s = src || "";
-  if (s.includes("파워링크")) return "bg-green-600 text-white";
-  if (s.includes("스마트플레이스")) return "bg-green-100 text-green-800";
+  if (s.includes("파워링크")) return "bg-[var(--gov-ok)] text-white";
+  if (s.includes("스마트플레이스")) return "bg-[#dbe8dd] text-[#164423]";
   if (s.includes("블로그")) return "bg-lime-100 text-lime-800";
-  if (s.includes("네이버")) return "bg-emerald-50 text-emerald-700";
-  if (s.includes("구글")) return "bg-amber-100 text-amber-800";
-  if (s.includes("인스타")) return "bg-pink-100 text-pink-800";
+  if (s.includes("네이버")) return "bg-[var(--gov-brand-weak)] text-[var(--gov-brand)]";
+  if (s.includes("구글")) return "bg-[#efe5d3] text-[#6d3b06]";
+  if (s.includes("인스타")) return "bg-[#ece7f0] text-[#3d3546]";
   if (s.includes("페이스북")) return "bg-indigo-100 text-indigo-800";
   return "bg-gray-100 text-gray-600";
 }
@@ -239,7 +239,6 @@ export default function InquiriesPage() {
     <div className="space-y-4">
       <header className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold">접수 내역</h1>
           <p className="mt-1 text-sm text-gray-600">
             조건에 맞는 접수 <b>{total}건</b>
             {items.length < total ? (
@@ -278,7 +277,7 @@ export default function InquiriesPage() {
         />
       ) : null}
 
-      <div className="flex flex-wrap items-center gap-2 rounded-xl border border-gray-200 bg-white p-3">
+      <div className="flex flex-wrap items-center gap-2 rounded-sm border border-gray-200 bg-white p-3">
         <form
           className="flex min-w-[220px] flex-1 gap-2"
           onSubmit={(event) => {
@@ -290,13 +289,13 @@ export default function InquiriesPage() {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="이름 · 연락처 · 업체 · 견적번호 검색"
-            className="min-w-0 flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100"
+            className="min-w-0 flex-1 rounded-sm border border-gray-300 px-3 py-2 text-sm outline-none focus:border-[var(--gov-brand)] focus:ring-2 focus:ring-[#dce5f1]"
           />
           <Button type="submit" size="sm">
             검색
           </Button>
         </form>
-        <div className="flex overflow-hidden rounded-lg border border-gray-300 text-sm">
+        <div className="flex overflow-hidden rounded-sm border border-gray-300 text-sm">
           {(
             [
               ["all", "전체"],
@@ -309,7 +308,7 @@ export default function InquiriesPage() {
               onClick={() => setKind(value)}
               className={`px-3 py-2 ${index ? "border-l border-gray-300" : ""} ${
                 kind === value
-                  ? "bg-emerald-700 font-semibold text-white"
+                  ? "bg-[var(--gov-brand)] font-semibold text-white"
                   : "bg-white hover:bg-gray-50"
               }`}
             >
@@ -320,7 +319,7 @@ export default function InquiriesPage() {
         {useDate ? (
           <button
             onClick={() => setUseDate(null)}
-            className="rounded-lg bg-emerald-700 px-3 py-2 text-sm font-semibold text-white"
+            className="rounded-sm bg-[var(--gov-brand)] px-3 py-2 text-sm font-semibold text-white"
           >
             이용일 {useDateLabel} ✕
           </button>
@@ -331,7 +330,7 @@ export default function InquiriesPage() {
               setQuery("");
               setAppliedQuery("");
             }}
-            className="rounded-lg border border-gray-300 px-3 py-2 text-sm"
+            className="rounded-sm border border-gray-300 px-3 py-2 text-sm"
           >
             검색어 “{appliedQuery}” ✕
           </button>
@@ -339,7 +338,7 @@ export default function InquiriesPage() {
       </div>
 
       <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_400px]">
-        <section className="overflow-hidden rounded-xl border border-gray-200 bg-white">
+        <section className="overflow-hidden rounded-sm border border-gray-200 bg-white">
           {loading ? (
             <div className="py-16 text-center text-sm text-gray-500">
               불러오는 중입니다.
@@ -356,7 +355,7 @@ export default function InquiriesPage() {
                     <h2 className="text-sm font-bold text-gray-900">
                       {group.label}
                       {dayKey === today ? (
-                        <span className="ml-1.5 rounded bg-emerald-100 px-1.5 py-0.5 text-xs font-semibold text-emerald-800">
+                        <span className="ml-1.5 rounded bg-[#dce5f1] px-1.5 py-0.5 text-xs font-semibold text-[#132a4f]">
                           오늘
                         </span>
                       ) : null}
@@ -374,7 +373,7 @@ export default function InquiriesPage() {
                         onClick={() => setSelected(item)}
                         className={`flex w-full items-center gap-3 border-b border-gray-100 px-4 py-3 text-left ${
                           active
-                            ? "bg-emerald-50 shadow-[inset_3px_0_0_#047857]"
+                            ? "bg-[var(--gov-brand-weak)] shadow-[inset_3px_0_0_#047857]"
                             : "hover:bg-gray-50"
                         }`}
                       >
@@ -395,7 +394,7 @@ export default function InquiriesPage() {
                               </span>
                             ) : null}
                             {item.contact_total > 1 ? (
-                              <span className="shrink-0 rounded bg-amber-100 px-1.5 py-0.5 text-[11px] font-bold text-amber-800">
+                              <span className="shrink-0 rounded bg-[#efe5d3] px-1.5 py-0.5 text-[11px] font-bold text-[#6d3b06]">
                                 재문의
                               </span>
                             ) : null}
@@ -413,7 +412,7 @@ export default function InquiriesPage() {
                         <span
                           className={`w-24 shrink-0 text-right text-sm ${
                             item.total_amount
-                              ? "font-bold text-emerald-700"
+                              ? "font-bold text-[var(--gov-brand)]"
                               : "text-gray-400"
                           }`}
                         >
@@ -519,9 +518,9 @@ function DetailCard({
   ] as Array<[string, number | null]>;
 
   return (
-    <div className="overflow-hidden rounded-xl border border-gray-200 bg-white">
+    <div className="overflow-hidden rounded-sm border border-gray-200 bg-white">
       <div
-        className={`border-b border-gray-200 px-4 py-3 ${item.kind === "quote" ? "bg-emerald-50" : "bg-blue-50"}`}
+        className={`border-b border-gray-200 px-4 py-3 ${item.kind === "quote" ? "bg-[var(--gov-brand-weak)]" : "bg-blue-50"}`}
       >
         <div className="flex items-center gap-2">
           <span
@@ -545,7 +544,7 @@ function DetailCard({
         <h3 className="mt-1.5 flex flex-wrap items-center gap-2 text-lg font-bold text-gray-900">
           {item.customer_company || item.customer_name}
           {visitTotal > 1 && current ? (
-            <span className="rounded bg-amber-100 px-2 py-0.5 text-xs font-bold text-amber-800">
+            <span className="rounded bg-[#efe5d3] px-2 py-0.5 text-xs font-bold text-[#6d3b06]">
               {current.visitNo}회차 / 총 {visitTotal}회
             </span>
           ) : null}
@@ -571,10 +570,10 @@ function DetailCard({
 
         {item.total_amount ? (
           <Section title="견적 금액">
-            <div className="rounded-lg bg-gray-50 p-3">
+            <div className="rounded-sm bg-gray-50 p-3">
               <div className="flex items-baseline justify-between">
                 <span className="text-sm text-gray-600">총 이용금액</span>
-                <span className="text-lg font-bold text-emerald-700">
+                <span className="text-lg font-bold text-[var(--gov-brand)]">
                   {item.total_amount}
                 </span>
               </div>
@@ -592,7 +591,7 @@ function DetailCard({
             <span className="text-gray-500">연락처</span>
             <a
               href={`tel:${item.customer_phone.replace(/\D/g, "")}`}
-              className="font-medium text-emerald-700 underline"
+              className="font-medium text-[var(--gov-brand)] underline"
             >
               {item.customer_phone}
             </a>
@@ -603,7 +602,7 @@ function DetailCard({
 
         {item.customer_memo ? (
           <Section title="고객 메모">
-            <p className="rounded-lg bg-amber-50 p-3 text-sm leading-relaxed text-gray-800">
+            <p className="rounded-sm bg-[var(--gov-warn-weak)] p-3 text-sm leading-relaxed text-gray-800">
               {item.customer_memo}
             </p>
           </Section>
@@ -618,7 +617,7 @@ function DetailCard({
                 return (
                   <li
                     key={`${entry.kind}-${entry.id}`}
-                    className={isCurrent ? "text-emerald-800" : "text-gray-700"}
+                    className={isCurrent ? "text-[#132a4f]" : "text-gray-700"}
                   >
                     <span className="text-xs text-gray-500">
                       {fullStamp(entry.created_at)}
@@ -644,11 +643,11 @@ function DetailCard({
                 key={label}
                 className={`rounded-full px-2.5 py-1 font-semibold ${
                   value
-                    ? "bg-emerald-100 text-emerald-800"
+                    ? "bg-[#dce5f1] text-[#132a4f]"
                     : "bg-gray-100 text-gray-400"
                 }`}
               >
-                {value ? "✓" : "—"} {label}
+                {value ? "예" : "—"} {label}
               </span>
             ))}
           </div>
@@ -663,7 +662,7 @@ function DetailCard({
       <div className="flex gap-2 border-t border-gray-200 bg-gray-50 px-4 py-3">
         <a
           href={`tel:${item.customer_phone.replace(/\D/g, "")}`}
-          className="flex-1 rounded-lg bg-emerald-700 px-3 py-2.5 text-center text-sm font-semibold text-white hover:bg-emerald-800"
+          className="flex-1 rounded-sm bg-[var(--gov-brand)] px-3 py-2.5 text-center text-sm font-semibold text-white hover:bg-[#132a4f]"
         >
           전화 걸기
         </a>

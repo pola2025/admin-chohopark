@@ -30,6 +30,7 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog'
 import { toast } from 'sonner'
+import { Icon } from '@/components/ui/icon'
 
 interface SmsSchedule {
   id: number
@@ -54,8 +55,8 @@ const SCHEDULE_TYPES: Record<string, string> = {
 }
 
 const STATUS_LABELS: Record<string, { label: string; color: string }> = {
-  pending: { label: '대기', color: 'bg-amber-100 text-amber-700' },
-  sent: { label: '발송완료', color: 'bg-emerald-100 text-emerald-700' },
+  pending: { label: '대기', color: 'bg-[#efe5d3] text-[var(--gov-warn)]' },
+  sent: { label: '발송완료', color: 'bg-[#dce5f1] text-[var(--gov-brand)]' },
   failed: { label: '실패', color: 'bg-red-100 text-red-700' },
   skipped: { label: '건너뜀', color: 'bg-gray-100 text-gray-600' },
 }
@@ -155,11 +156,10 @@ export default function SmsPage() {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold">SMS 관리</h1>
         <Dialog open={testDialogOpen} onOpenChange={setTestDialogOpen}>
           <DialogTrigger asChild>
             <Button variant="outline">
-              📤 테스트 발송
+              테스트 발송
             </Button>
           </DialogTrigger>
           <DialogContent>
@@ -206,8 +206,8 @@ export default function SmsPage() {
       </div>
 
       {/* 현재 시간 (KST) 표시 */}
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-sm text-blue-800">
-        <strong>⏰ 현재 시간 (KST):</strong>{' '}
+      <div className="bg-blue-50 border border-blue-200 rounded-sm p-3 text-sm text-blue-800">
+        <strong>현재 시각 (KST):</strong>{' '}
         {new Date().toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' })}
         <span className="ml-4 text-blue-600">
           모든 시간은 한국 표준시(KST) 기준입니다.
@@ -218,7 +218,7 @@ export default function SmsPage() {
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <Card>
           <CardContent className="p-4">
-            <div className="text-2xl font-bold text-amber-600">
+            <div className="text-2xl font-bold text-[var(--gov-warn)]">
               {schedules.filter(s => s.status === 'pending').length}
             </div>
             <p className="text-sm text-gray-500">대기 중</p>
@@ -226,7 +226,7 @@ export default function SmsPage() {
         </Card>
         <Card>
           <CardContent className="p-4">
-            <div className="text-2xl font-bold text-emerald-600">
+            <div className="text-2xl font-bold text-[var(--gov-brand)]">
               {schedules.filter(s => s.status === 'sent').length}
             </div>
             <p className="text-sm text-gray-500">발송 완료</p>
@@ -311,7 +311,7 @@ export default function SmsPage() {
             </div>
 
             <Button variant="outline" size="sm" onClick={fetchSchedules}>
-              🔄 새로고침
+              새로고침
             </Button>
           </div>
         </CardContent>
@@ -341,7 +341,7 @@ export default function SmsPage() {
                   }, {} as Record<string, SmsSchedule[]>)
 
                   return Object.entries(grouped).map(([company, items]) => (
-                    <div key={company} className="border rounded-lg overflow-hidden">
+                    <div key={company} className="border rounded-sm overflow-hidden">
                       {/* 업체명 헤더 */}
                       <button
                         onClick={() => setExpandedCompany(expandedCompany === company ? null : company)}
@@ -349,17 +349,17 @@ export default function SmsPage() {
                       >
                         <div className="flex items-center gap-2">
                           <span className={`transition-transform ${expandedCompany === company ? 'rotate-90' : ''}`}>
-                            ▶
+                            →
                           </span>
                           <span className="font-semibold text-gray-900">{company}</span>
                           <span className="text-sm text-gray-500">({items.length}건)</span>
                         </div>
                         <div className="flex gap-1">
                           {items.some(i => i.status === 'pending') && (
-                            <span className="w-2 h-2 rounded-full bg-amber-400"></span>
+                            <span className="w-2 h-2 rounded-full bg-[#b08c4a]"></span>
                           )}
                           {items.some(i => i.status === 'sent') && (
-                            <span className="w-2 h-2 rounded-full bg-emerald-400"></span>
+                            <span className="w-2 h-2 rounded-full bg-[#4a75ad]"></span>
                           )}
                         </div>
                       </button>
@@ -376,7 +376,7 @@ export default function SmsPage() {
                               >
                                 <div className="flex items-center gap-2">
                                   <span className={`text-xs transition-transform ${expandedSchedule === s.id ? 'rotate-90' : ''}`}>
-                                    ▶
+                                    →
                                   </span>
                                   <span className="text-sm font-medium">
                                     {SCHEDULE_TYPES[s.schedule_type] || s.schedule_type}
@@ -403,7 +403,7 @@ export default function SmsPage() {
                                   {s.sent_at && (
                                     <div className="flex justify-between">
                                       <span className="text-gray-500">발송 시간</span>
-                                      <span className="font-medium text-emerald-600">{formatKSTTime(s.sent_at)}</span>
+                                      <span className="font-medium text-[var(--gov-brand)]">{formatKSTTime(s.sent_at)}</span>
                                     </div>
                                   )}
                                 </div>
