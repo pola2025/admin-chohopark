@@ -36,6 +36,8 @@ interface Item {
   telegram_sent: number | null;
   created_at: string;
   contact_total: number;
+  callback_time?: string | null;
+  privacy_consent?: number | boolean | null;
 }
 
 type KindFilter = "all" | "quote" | "quick";
@@ -299,8 +301,8 @@ export default function InquiriesPage() {
           {(
             [
               ["all", "전체"],
-              ["quote", "견적문의"],
-              ["quick", "빠른문의"],
+              ["quote", "견적서"],
+              ["quick", "견적 상담"],
             ] as Array<[KindFilter, string]>
           ).map(([value, label], index) => (
             <button
@@ -512,7 +514,7 @@ function DetailCard({
     : 1;
 
   const sent = [
-    ["이메일", item.email_sent],
+    [item.kind === "quote" ? "견적서 이메일" : "접수 확인 이메일", item.email_sent],
     ["문자", item.sms_sent],
     ["텔레그램", item.telegram_sent],
   ] as Array<[string, number | null]>;
@@ -598,6 +600,8 @@ function DetailCard({
           </div>
           <Row label="이메일" value={item.customer_email} />
           <Row label="업체" value={item.customer_company} />
+          <Row label="통화 가능 시간" value={item.callback_time} />
+          <Row label="개인정보 동의" value={item.privacy_consent ? "동의" : "미동의 또는 기록 없음"} />
         </Section>
 
         {item.customer_memo ? (
@@ -660,6 +664,12 @@ function DetailCard({
       </div>
 
       <div className="flex gap-2 border-t border-gray-200 bg-gray-50 px-4 py-3">
+        <a
+          href={`/dashboard/quotes?inquiryId=${encodeURIComponent(String(item.id))}&kind=${encodeURIComponent(item.kind)}`}
+          className="flex-1 rounded-sm border border-[var(--gov-brand)] px-3 py-2.5 text-center text-sm font-semibold text-[var(--gov-brand)] hover:bg-[var(--gov-brand-weak)]"
+        >
+          견적서 작성
+        </a>
         <a
           href={`tel:${item.customer_phone.replace(/\D/g, "")}`}
           className="flex-1 rounded-sm bg-[var(--gov-brand)] px-3 py-2.5 text-center text-sm font-semibold text-white hover:bg-[#132a4f]"
