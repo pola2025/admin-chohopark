@@ -21,6 +21,7 @@ export interface ContractSummary {
   totalAmount: number;
   status: ContractStatus;
   createdAt: string;
+  creationOrigin: "APP" | "WEB" | null;
 }
 
 export interface ContractEvent {
@@ -150,6 +151,10 @@ function normalizeSummary(value: unknown): ContractSummary {
     ]),
     status: normalizeStatus(text(row, ["status"])),
     createdAt: text(row, ["createdAt", "created_at"]),
+    creationOrigin: (() => {
+      const value = first(row, ["creationOrigin"]);
+      return value === "APP" || value === "WEB" ? value : null;
+    })(),
   };
 }
 

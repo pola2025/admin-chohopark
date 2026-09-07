@@ -11,6 +11,7 @@ import {
   type ContractStatus,
   type ContractSummary,
 } from "@/lib/contract-remote-api";
+import { OriginBadge } from "@/components/dashboard/origin-badge";
 
 function money(value: number) {
   return `${new Intl.NumberFormat("ko-KR").format(value)}원`;
@@ -107,7 +108,7 @@ export default function ContractsPage() {
             href={`/dashboard/contracts/${encodeURIComponent(contract.id)}`}
             className="grid gap-2 border-b border-gray-100 px-5 py-5 transition-colors last:border-0 hover:bg-[var(--gov-brand-weak)] lg:grid-cols-[1.1fr_1fr_1.4fr_.8fr_1fr_.8fr] lg:items-center lg:gap-4"
           >
-            <span><strong className="block text-sm text-[#132a4f]">{contract.contractNumber}</strong><small className="text-gray-500">{contract.productName}</small></span>
+            <span><span className="flex flex-wrap items-center gap-2"><strong className="text-sm text-[#132a4f]">{contract.contractNumber}</strong><OriginBadge origin={contract.creationOrigin} /></span><small className="text-gray-500">{contract.productName}</small></span>
             <span className="text-sm text-gray-700">{contract.useDate || "미정"}</span>
             <span className="text-sm text-gray-800">{contract.company || "개인 고객"}<small className="block text-gray-500">{contract.customerName} {contract.phone}</small></span>
             <span className="text-sm text-gray-700">{contract.people ? `${contract.people}명` : "미정"}</span>

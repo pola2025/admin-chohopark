@@ -23,6 +23,7 @@ import {
   updateContractStatus,
   type ContractDetail,
 } from "@/lib/contract-remote-api";
+import { OriginBadge } from "@/components/dashboard/origin-badge";
 
 function money(value: number) {
   return `${new Intl.NumberFormat("ko-KR").format(value)}원`;
@@ -190,6 +191,7 @@ export default function ContractDetailPage() {
             >
               {statusLabel[contract.status]}
             </span>
+            <OriginBadge origin={contract.creationOrigin} />
           </div>
           <p className="mt-1 text-sm text-gray-600">
             {contract.company || "개인 고객"} · {contract.productName}

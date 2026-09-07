@@ -10,6 +10,7 @@ import {
   type HistoryEntry,
 } from "@/lib/inquiry-history";
 import { DemandHeatmap, type DemandRow } from "@/components/DemandHeatmap";
+import { normalizeCreationOrigin, OriginBadge } from "@/components/dashboard/origin-badge";
 
 interface Item {
   id: number;
@@ -38,6 +39,7 @@ interface Item {
   contact_total: number;
   callback_time?: string | null;
   privacy_consent?: number | boolean | null;
+  creationOrigin?: "APP" | "WEB" | null;
 }
 
 type KindFilter = "all" | "quote" | "quick";
@@ -387,6 +389,7 @@ export default function InquiriesPage() {
                         >
                           {item.kind_label}
                         </span>
+                        <OriginBadge origin={item.creationOrigin ?? null} />
                         <span className="min-w-0 flex-1">
                           <span className="flex items-center gap-1.5 truncate text-sm font-semibold">
                             {item.customer_company || item.customer_name}
@@ -535,6 +538,7 @@ function DetailCard({
               {item.quote_number}
             </span>
           ) : null}
+          <OriginBadge origin={normalizeCreationOrigin(item.creationOrigin)} />
           <button
             onClick={onClose}
             className="ml-auto text-gray-400 hover:text-gray-700"
