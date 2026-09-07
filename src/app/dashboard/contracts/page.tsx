@@ -35,7 +35,12 @@ export default function ContractsPage() {
     }
   }, []);
 
-  useEffect(() => { void load(); }, [load]);
+  useEffect(() => {
+    void load();
+    const onVisible = () => { if (document.visibilityState === "visible") void load(query, status); };
+    document.addEventListener("visibilitychange", onVisible);
+    return () => document.removeEventListener("visibilitychange", onVisible);
+  }, [load, query, status]);
 
   function search(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -50,6 +55,7 @@ export default function ContractsPage() {
             텔레그램에서 발행한 약정서 원본과 거래처 진행 상태를 관리합니다.
           </p>
         </div>
+        <Link href="/dashboard/contracts/new" className="inline-flex items-center justify-center rounded-sm bg-[var(--gov-brand)] px-4 py-2.5 text-sm font-semibold text-white">새 약정서 작성</Link>
         <button
           type="button"
           onClick={() => void load(query, status)}

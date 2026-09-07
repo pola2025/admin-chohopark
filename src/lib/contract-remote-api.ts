@@ -33,6 +33,7 @@ export interface ContractEvent {
 }
 
 export interface ContractDetail extends ContractSummary {
+  pdfArchiveStatus: "not_ready" | "archived" | "unverified";
   email: string;
   representative: string;
   contactTitle: string;
@@ -181,6 +182,10 @@ function normalizeDetail(value: unknown): ContractDetail {
   const rawEvents = first(row, ["events", "history"]);
   return {
     ...summary,
+    pdfArchiveStatus: (() => {
+      const value = text(row, ["pdfArchiveStatus", "pdf_archive_status"]);
+      return value === "archived" || value === "unverified" ? value : "not_ready";
+    })(),
     email: text(
       row,
       ["email", "customerEmail", "customer_email"],
@@ -297,6 +302,116 @@ export interface DepositResult {
   signed: boolean;
   confirmationEmailSent: boolean;
   confirmationEmailTo: string;
+}
+
+export type ContractCreateInput = Record<string, unknown>;
+export interface ContractCreateResult {
+  id: string;
+  contractNumber: string;
+  agreementUrl: string;
+  previewUrl?: string;
+}
+
+export class ContractMutationError extends Error {
+  readonly unknownResult: boolean;
+  constructor(message: string, unknownResult = false) {
+    super(message);
+    this.name = "ContractMutationError";
+    this.unknownResult = unknownResult;
+  }
+}
+
+export type PendingMutation = { requestId: string; payload: string };
+
+export function getPendingContractMutation(scope: string): Record<string, unknown> | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = window.localStorage.getItem(`choho-contract-request:${scope}`);
+    if (!raw) return null;
+    const pending = JSON.parse(raw) as PendingMutation;
+    const payload = JSON.parse(pending.payload) as unknown;
+    return pending.requestId && payload && typeof payload === "object" && !Array.isArray(payload)
+      ? (payload as Record<string, unknown>)
+      : null;
+  } catch {
+    return null;
+  }
+}
+
+async function contractMutation(
+  scope: string,
+  url: string,
+  payload: Record<string, unknown>,
+  validate: (body: Record<string, unknown>) => void,
+): Promise<Record<string, unknown>> {
+  const key = `choho-contract-request:${scope}`;
+  const serialized = JSON.stringify(payload);
+  let pending: PendingMutation;
+  try {
+    const raw = window.localStorage.getItem(key);
+    if (raw) {
+      const stored = JSON.parse(raw) as PendingMutation;
+      if (!stored.requestId || stored.payload !== serialized) {
+        throw new ContractMutationError("이전 요청의 결과가 확인되지 않았습니다. 원래 입력으로 처리 결과를 확인해 주세요.", true);
+      }
+      pending = stored;
+    } else {
+      pending = { requestId: crypto.randomUUID(), payload: serialized };
+      window.localStorage.setItem(key, JSON.stringify(pending));
+    }
+  } catch (error) {
+    if (error instanceof ContractMutationError) throw error;
+    throw new ContractMutationError("요청을 안전하게 저장하지 못해 전송을 중단했습니다.", true);
+  }
+  const complete = () => {
+    try {
+      const stored = JSON.parse(window.localStorage.getItem(key) || "null") as PendingMutation | null;
+      if (stored?.requestId === pending.requestId) window.localStorage.removeItem(key);
+    } catch {}
+  };
+  try {
+    const response = await fetch(url, {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ requestId: pending.requestId, ...JSON.parse(pending.payload) }), cache: "no-store",
+    });
+    const body = object(await responseJson(response));
+    if (!response.ok || body.ok === false) {
+      const uncertain = response.status >= 500 || response.status === 409 || body.unknown === true || response.ok;
+      if (!uncertain) complete();
+      throw new ContractMutationError(errorMessage(body, "요청을 처리하지 못했습니다."), uncertain);
+    }
+    validate(body);
+    complete();
+    return body;
+  } catch (error) {
+    if (error instanceof ContractMutationError) throw error;
+    throw new ContractMutationError("처리 결과가 불명확합니다. 같은 요청으로 다시 확인해 주세요.", true);
+  }
+}
+
+export async function createContract(input: ContractCreateInput): Promise<ContractCreateResult> {
+  const body = await contractMutation("create", "/api/contract-proxy", { input }, (value) => {
+    if (!text(object(value.contract), ["id"])) throw new ContractMutationError("생성된 약정서 정보를 확인하지 못했습니다.", true);
+  });
+  const row = object(body.contract);
+  return { id: text(row, ["id"]), contractNumber: text(row, ["contractNumber"]), agreementUrl: text(body, ["agreementUrl", "consentUrl"]) };
+}
+
+export async function getContractLink(id: string): Promise<{ agreementUrl: string }> {
+  const response = await fetch(`/api/contract-proxy/${encodeURIComponent(id)}/link`, { cache: "no-store" });
+  const body = await responseJson(response);
+  if (!response.ok) throw new Error(errorMessage(body, "약정서 동의 링크를 불러오지 못했습니다."));
+  return { agreementUrl: text(object(body), ["agreementUrl", "consentUrl"]) };
+}
+
+export async function sendContractLink(id: string, input: { channels: string[]; expectedPhone?: string; expectedEmail?: string }): Promise<Record<string, unknown>> {
+  const payload = { channels: [...new Set(input.channels)].sort(), expectedPhone: input.expectedPhone ?? "", expectedEmail: input.expectedEmail ?? "" };
+  return contractMutation(`send:${id}`, `/api/contract-proxy/${encodeURIComponent(id)}/send`, payload, (body) => {
+    const results = object(body.channels);
+    if (payload.channels.some(channel => !["accepted", "failed"].includes(text(object(results[channel]), ["status"])))) {
+      throw new ContractMutationError("일부 채널의 발송 결과가 불명확합니다. 원래 요청의 결과를 확인해 주세요.", true);
+    }
+  });
 }
 
 export async function confirmDeposit(id: string): Promise<DepositResult> {

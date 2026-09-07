@@ -14,7 +14,10 @@ import { useCallback, useEffect, useState } from "react";
 
 import {
   confirmDeposit,
+  ContractMutationError,
   getContract,
+  getPendingContractMutation,
+  sendContractLink,
   statusClass,
   statusLabel,
   updateContractStatus,
@@ -40,6 +43,18 @@ export default function ContractDetailPage() {
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
   const [notice, setNotice] = useState("");
+  const [sendBusy, setSendBusy] = useState(false);
+  const [channels, setChannels] = useState<string[]>(["email", "sms"]);
+  const [sendBlocked, setSendBlocked] = useState(false);
+
+  useEffect(() => {
+    const pending = getPendingContractMutation(`send:${id}`);
+    if (pending) {
+      const savedChannels = pending.channels;
+      if (Array.isArray(savedChannels)) setChannels(savedChannels.filter((value): value is string => typeof value === "string"));
+      setSendBlocked(true);
+    }
+  }, [id]);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -59,7 +74,28 @@ export default function ContractDetailPage() {
 
   useEffect(() => {
     void load();
+    const timer = window.setInterval(() => { if (document.visibilityState === "visible") void load(); }, 30000);
+    const onVisible = () => { if (document.visibilityState === "visible") void load(); };
+    document.addEventListener("visibilitychange", onVisible);
+    return () => { window.clearInterval(timer); document.removeEventListener("visibilitychange", onVisible); };
   }, [load]);
+
+  async function sendLink() {
+    if (!channels.length || sendBusy || !contract) return;
+    const selected = channels.filter(channel => channel === "sms" ? Boolean(contract.phone) : Boolean(contract.email));
+    if (!selected.length) { setMessage("수신 연락처가 있는 채널을 선택해 주세요."); return; }
+    const recipients = selected.map(channel => channel === "sms" ? `문자: ${contract.phone}` : `이메일: ${contract.email}`).join("\n");
+    if (!window.confirm(`${recipients}\n\n${sendBlocked ? "기존 발송 요청의 결과를 다시 확인할까요?" : "약정서 동의 링크를 발송할까요?"}`)) return;
+    setSendBusy(true); setMessage("");
+    try {
+      const pending = getPendingContractMutation(`send:${id}`);
+      const result = await sendContractLink(id, { channels: selected, expectedPhone: typeof pending?.expectedPhone === "string" ? pending.expectedPhone : contract.phone, expectedEmail: typeof pending?.expectedEmail === "string" ? pending.expectedEmail : contract.email });
+      const outcomes = result.channels as Record<string, { status: string }>;
+      setNotice(selected.map(channel => `${channel === "sms" ? "문자" : "이메일"}: ${outcomes[channel]?.status === "accepted" ? "발송 접수" : "발송 실패"}`).join(" / "));
+      setSendBlocked(false);
+    } catch (error) { if (error instanceof ContractMutationError && error.unknownResult) setSendBlocked(true); setMessage(error instanceof Error ? `${error.message}${error instanceof ContractMutationError && error.unknownResult ? " 처리 결과를 확인할 때까지 다시 발송하지 마세요." : ""}` : "발송 결과를 확인하지 못했습니다."); }
+    finally { setSendBusy(false); }
+  }
 
   async function deposit() {
     setBusy(true);
@@ -129,6 +165,7 @@ export default function ContractDetailPage() {
     );
   }
 
+  const pdfUrl = `/api/contract-proxy/${encodeURIComponent(id)}/pdf`;
   const originalUrl = `/api/contract-proxy/${encodeURIComponent(id)}/original`;
   const canDeposit =
     !contract.depositReceivedAt &&
@@ -190,7 +227,7 @@ export default function ContractDetailPage() {
               <FileText className="h-5 w-5 text-[var(--gov-brand)]" />
               <h2 className="font-semibold text-gray-900">발행 원본 (A4)</h2>
             </div>
-            {!contract.originalHtml ? (
+            {
               <a
                 href={originalUrl}
                 target="_blank"
@@ -199,20 +236,26 @@ export default function ContractDetailPage() {
               >
                 새 창에서 열기 <ExternalLink className="h-4 w-4" />
               </a>
-            ) : null}
+            }
           </div>
           <div className="min-h-[780px] bg-gray-100 p-3 sm:p-5">
             <iframe
               title={`${contract.contractNumber} 발행 원본`}
               className="mx-auto h-[1050px] w-full max-w-[794px] border border-gray-300 bg-white shadow-none"
               sandbox="allow-same-origin"
-              src={contract.originalHtml ? undefined : originalUrl}
-              srcDoc={contract.originalHtml || undefined}
+              src={originalUrl}
             />
           </div>
         </section>
 
         <aside className="space-y-4">
+          <section className="rounded-sm border border-gray-200 bg-white p-5">
+            <h2 className="font-semibold text-gray-900">고객 동의 링크</h2>
+            <p className="mt-1 text-xs text-gray-500">저장된 고객 연락처로만 발송합니다.</p>
+            <div className="mt-3 flex gap-3 text-sm"><label><input type="checkbox" disabled={sendBusy || sendBlocked} checked={channels.includes("email")} onChange={e => setChannels(v => e.target.checked ? [...new Set([...v, "email"])] : v.filter(x => x !== "email"))} /> 이메일</label><label><input type="checkbox" disabled={sendBusy || sendBlocked} checked={channels.includes("sms")} onChange={e => setChannels(v => e.target.checked ? [...new Set([...v, "sms"])] : v.filter(x => x !== "sms"))} /> 문자</label></div>
+            <button type="button" onClick={() => void sendLink()} disabled={sendBusy || !channels.length} className="mt-3 w-full rounded-sm bg-[var(--gov-brand)] px-3 py-2 text-sm font-semibold text-white disabled:opacity-50">{sendBlocked ? "기존 요청 결과 확인" : sendBusy ? "발송 확인 중..." : "동의 링크 발송"}</button>
+            {contract.signedAt ? <div className={`mt-3 rounded-sm border p-3 text-sm ${contract.pdfArchiveStatus === "archived" ? "border-emerald-200 bg-emerald-50 text-emerald-800" : "border-amber-200 bg-amber-50 text-amber-800"}`}><p className="font-semibold">내부 PDF 보관: {contract.pdfArchiveStatus === "archived" ? "완료" : "확인 필요"}</p><a href={pdfUrl} target="_blank" rel="noreferrer" className="mt-2 inline-flex items-center gap-1 font-medium underline">보관 PDF 열기 <ExternalLink className="h-3.5 w-3.5" /></a>{contract.pdfArchiveStatus !== "archived" ? <p className="mt-1 text-xs">보관 상태 이벤트가 없어 확인이 필요합니다.</p> : null}</div> : null}
+          </section>
           <section className="rounded-sm border border-gray-200 bg-white p-5">
             <div className="flex items-center gap-2">
               <UserRound className="h-5 w-5 text-[var(--gov-brand)]" />
