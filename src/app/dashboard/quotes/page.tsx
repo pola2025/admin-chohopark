@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation";
 
 type PackageType = "daytrip" | "overnight";
 type CallbackTime = "" | "09:00-12:00" | "12:00-15:00" | "15:00-18:00";
+type IncludedItem = { name: string; detail: string };
 
 type FormValues = {
   customerName: string;
@@ -19,6 +20,7 @@ type FormValues = {
   childPricePerPerson: string;
   seminarHours: string;
   seminarPricePerHour: string;
+  includedItems: IncludedItem[];
   customerMemo: string;
   callbackTime: CallbackTime;
 };
@@ -121,22 +123,45 @@ type StoredPendingDispatch = PendingDispatch & {
 const money = new Intl.NumberFormat("ko-KR");
 const pendingStorageKey = "choho.manualQuote.pendingDispatch";
 
-const blankForm: FormValues = {
-  customerName: "",
-  customerPhone: "",
-  customerEmail: "",
-  customerCompany: "",
-  packageType: "daytrip",
-  useDate: "",
-  people: "",
-  children: "0",
-  pricePerPerson: "66000",
-  childPricePerPerson: "44000",
-  seminarHours: "0",
-  seminarPricePerHour: "110000",
-  customerMemo: "",
-  callbackTime: "",
-};
+function defaultIncludedItems(packageType: PackageType): IncludedItem[] {
+  const items = packageType === "overnight"
+    ? [
+        ["저녁식사", "삼겹살, 오리훈제, 새우, 새송이버섯"],
+        ["조식", "소고기무국, 반찬 6가지"],
+        ["주류", "소주, 맥주"],
+        ["운동장", "축구, 족구, 배구"],
+        ["숙박", "펜션"],
+        ["음료", "3종류"],
+      ]
+    : [
+        ["점심식사", "삼겹살, 오리훈제, 대하새우"],
+        ["추가 메뉴", "두부김치, 부추전, 막걸리"],
+        ["주류", "소주, 맥주"],
+        ["운동장", "축구, 족구, 배구"],
+        ["음료", "5종류"],
+      ];
+  return items.map(([name, detail]) => ({ name, detail }));
+}
+
+function makeBlankForm(): FormValues {
+  return {
+    customerName: "",
+    customerPhone: "",
+    customerEmail: "",
+    customerCompany: "",
+    packageType: "daytrip",
+    useDate: "",
+    people: "",
+    children: "0",
+    pricePerPerson: "66000",
+    childPricePerPerson: "44000",
+    seminarHours: "0",
+    seminarPricePerHour: "110000",
+    includedItems: defaultIncludedItems("daytrip"),
+    customerMemo: "",
+    callbackTime: "",
+  };
+}
 
 function text(value: unknown): string {
   return typeof value === "string" ? value.trim() : "";
@@ -243,6 +268,7 @@ function applySourceInquiry(current: FormValues, source: SourceInquiry): FormVal
     packageType,
     pricePerPerson: defaultAdultPrice(packageType),
     childPricePerPerson: defaultChildPrice(packageType),
+    includedItems: defaultIncludedItems(packageType),
   };
 }
 
@@ -293,7 +319,7 @@ function QuoteCompose() {
   const sourceId = searchParams.get("inquiryId") || searchParams.get("id") || "";
   const sourceKey = `${kind}:${sourceId || "new"}`;
 
-  const [values, setValues] = useState<FormValues>(blankForm);
+  const [values, setValues] = useState<FormValues>(() => makeBlankForm());
   const [requestId, setRequestId] = useState("");
   const [preparedQuote, setPreparedQuote] = useState<PreparedQuote | null>(null);
   const [pendingDispatch, setPendingDispatch] = useState<PendingDispatch | null>(null);
@@ -340,6 +366,7 @@ function QuoteCompose() {
       childPricePerPerson: parseAmount(values.childPricePerPerson),
       seminarHours: parseAmount(values.seminarHours),
       seminarPricePerHour: parseAmount(values.seminarPricePerHour),
+      includedItems: values.includedItems,
       customerMemo: values.customerMemo,
       callbackTime: values.callbackTime,
     }),
@@ -348,7 +375,7 @@ function QuoteCompose() {
 
   useEffect(() => {
     const restoredPending = readStoredPendingDispatch(sourceKey);
-    setValues(blankForm);
+    setValues(makeBlankForm());
     setPreparedQuote(null);
     setPdfUrl(null);
     setFieldError("");
@@ -424,7 +451,32 @@ function QuoteCompose() {
       packageType: value,
       pricePerPerson: defaultAdultPrice(value),
       childPricePerPerson: defaultChildPrice(value),
+      includedItems: defaultIncludedItems(value),
     }));
+    clearPreparedForEdit();
+  }
+
+  function editIncludedItem(index: number, field: keyof IncludedItem, value: string) {
+    setValues((current) => ({
+      ...current,
+      includedItems: current.includedItems.map((item, itemIndex) => itemIndex === index ? { ...item, [field]: value } : item),
+    }));
+    clearPreparedForEdit();
+  }
+
+  function addIncludedItem() {
+    setValues((current) => current.includedItems.length >= 12 ? current : {
+      ...current,
+      includedItems: [...current.includedItems, { name: "", detail: "" }],
+    });
+    clearPreparedForEdit();
+  }
+
+  function removeIncludedItem(index: number) {
+    setValues((current) => current.includedItems.length <= 1 ? current : {
+      ...current,
+      includedItems: current.includedItems.filter((_, itemIndex) => itemIndex !== index),
+    });
     clearPreparedForEdit();
   }
 
@@ -435,6 +487,10 @@ function QuoteCompose() {
     }
     if (childCount < 0 || childCount > totalPeople) {
       setFieldError("어린이 인원은 0명 이상이며 총 인원을 넘을 수 없습니다.");
+      return false;
+    }
+    if (values.includedItems.length < 1 || values.includedItems.length > 12 || values.includedItems.some((item) => !item.name.trim() || item.name.trim().length > 40 || !item.detail.trim() || item.detail.trim().length > 120)) {
+      setFieldError("패키지 포함 세부항목은 1~12개이며 이름 40자, 설명 120자 이내로 입력해주세요.");
       return false;
     }
     setFieldError("");
@@ -530,7 +586,7 @@ function QuoteCompose() {
   function startNewQuote() {
     if (!canStartNewQuote) return;
     clearStoredPendingDispatch(sourceKey);
-    setValues(blankForm);
+    setValues(makeBlankForm());
     setPreparedQuote(null);
     setPendingDispatch(null);
     setLastStatus(null);
@@ -680,6 +736,58 @@ function QuoteCompose() {
                 />
               </label>
             </div>
+
+            <section className="rounded-lg border-2 border-amber-400 bg-amber-50 p-4">
+              <div className="flex flex-wrap items-start justify-between gap-2">
+                <div>
+                  <h2 className="text-sm font-semibold text-amber-950">패키지 포함 세부항목</h2>
+                  <p className="mt-1 text-xs leading-5 text-amber-800">상품 기본값을 불러옵니다. 견적별로 수정할 수 있으며 총액에는 영향을 주지 않습니다.</p>
+                </div>
+                <span className="rounded-full bg-amber-700 px-2 py-1 text-[11px] font-semibold text-white">신규</span>
+              </div>
+              <div className="mt-3 space-y-2">
+                {values.includedItems.map((item, index) => (
+                  <div key={index} className="grid gap-2 sm:grid-cols-[minmax(110px,0.35fr)_minmax(180px,1fr)_auto]">
+                    <label className="sr-only" htmlFor={`included-name-${index}`}>세부항목 {index + 1} 이름</label>
+                    <input
+                      id={`included-name-${index}`}
+                      required
+                      maxLength={40}
+                      value={item.name}
+                      onChange={(event) => editIncludedItem(index, "name", event.target.value)}
+                      placeholder="항목명"
+                      className="block w-full rounded-md border border-amber-300 bg-white px-3 py-2 text-sm"
+                    />
+                    <label className="sr-only" htmlFor={`included-detail-${index}`}>세부항목 {index + 1} 설명</label>
+                    <input
+                      id={`included-detail-${index}`}
+                      required
+                      maxLength={120}
+                      value={item.detail}
+                      onChange={(event) => editIncludedItem(index, "detail", event.target.value)}
+                      placeholder="포함 내용"
+                      className="block w-full rounded-md border border-amber-300 bg-white px-3 py-2 text-sm"
+                    />
+                    <button
+                      type="button"
+                      disabled={values.includedItems.length <= 1}
+                      onClick={() => removeIncludedItem(index)}
+                      className="rounded-md px-3 py-2 text-sm font-medium text-amber-800 hover:bg-amber-100 disabled:cursor-not-allowed disabled:opacity-40"
+                    >
+                      삭제
+                    </button>
+                  </div>
+                ))}
+              </div>
+              <button
+                type="button"
+                disabled={values.includedItems.length >= 12}
+                onClick={addIncludedItem}
+                className="mt-3 w-full rounded-md border border-dashed border-amber-600 px-3 py-2 text-sm font-semibold text-amber-800 hover:bg-amber-100 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                항목 추가
+              </button>
+            </section>
 
             <label className="block text-sm font-medium text-gray-800">
               회신 희망 시간
