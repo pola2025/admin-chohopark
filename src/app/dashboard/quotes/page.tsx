@@ -5,7 +5,7 @@ import { useSearchParams } from "next/navigation";
 
 type PackageType = "daytrip" | "overnight";
 type CallbackTime = "" | "09:00-12:00" | "12:00-15:00" | "15:00-18:00";
-type IncludedItem = { name: string; detail: string };
+type IncludedItem = { name: string; detail: string; amount: string };
 
 type FormValues = {
   customerName: string;
@@ -140,7 +140,7 @@ function defaultIncludedItems(packageType: PackageType): IncludedItem[] {
         ["운동장", "축구, 족구, 배구"],
         ["음료", "5종류"],
       ];
-  return items.map(([name, detail]) => ({ name, detail }));
+  return items.map(([name, detail]) => ({ name, detail, amount: "" }));
 }
 
 function makeBlankForm(): FormValues {
@@ -337,7 +337,8 @@ function QuoteCompose() {
   const estimatedTotal =
     adultCount * parseAmount(values.pricePerPerson) +
     childCount * parseAmount(values.childPricePerPerson) +
-    parseAmount(values.seminarHours) * parseAmount(values.seminarPricePerHour);
+    parseAmount(values.seminarHours) * parseAmount(values.seminarPricePerHour) +
+    values.includedItems.reduce((sum, item) => sum + parseAmount(item.amount), 0);
   const preparedTotal = Number(preparedQuote?.totalAmount ?? preparedQuote?.totals?.total ?? estimatedTotal);
   const preparedDeposit = Number(preparedQuote?.depositAmount ?? preparedQuote?.totals?.deposit ?? Math.round(preparedTotal * 0.3));
   const preparedBalance = Number(preparedQuote?.balanceAmount ?? preparedQuote?.totals?.balance ?? preparedTotal - preparedDeposit);
@@ -366,7 +367,7 @@ function QuoteCompose() {
       childPricePerPerson: parseAmount(values.childPricePerPerson),
       seminarHours: parseAmount(values.seminarHours),
       seminarPricePerHour: parseAmount(values.seminarPricePerHour),
-      includedItems: values.includedItems,
+      includedItems: values.includedItems.map((item) => ({ ...item, amount: item.amount === "" ? 0 : parseAmount(item.amount) })),
       customerMemo: values.customerMemo,
       callbackTime: values.callbackTime,
     }),
@@ -467,7 +468,7 @@ function QuoteCompose() {
   function addIncludedItem() {
     setValues((current) => current.includedItems.length >= 12 ? current : {
       ...current,
-      includedItems: [...current.includedItems, { name: "", detail: "" }],
+      includedItems: [...current.includedItems, { name: "", detail: "", amount: "" }],
     });
     clearPreparedForEdit();
   }
@@ -489,8 +490,8 @@ function QuoteCompose() {
       setFieldError("어린이 인원은 0명 이상이며 총 인원을 넘을 수 없습니다.");
       return false;
     }
-    if (values.includedItems.length < 1 || values.includedItems.length > 12 || values.includedItems.some((item) => !item.name.trim() || item.name.trim().length > 40 || !item.detail.trim() || item.detail.trim().length > 120)) {
-      setFieldError("패키지 포함 세부항목은 1~12개이며 이름 40자, 설명 120자 이내로 입력해주세요.");
+    if (values.includedItems.length < 1 || values.includedItems.length > 12 || values.includedItems.some((item) => !item.name.trim() || item.name.trim().length > 40 || !item.detail.trim() || item.detail.trim().length > 120 || (item.amount !== "" && (!/^\d+$/.test(item.amount) || parseAmount(item.amount) > 100000000)))) {
+      setFieldError("패키지 세부항목은 1~12개이며 이름·설명과 선택 추가 금액을 확인해주세요.");
       return false;
     }
     setFieldError("");
@@ -740,14 +741,14 @@ function QuoteCompose() {
             <section className="rounded-lg border-2 border-amber-400 bg-amber-50 p-4">
               <div className="flex flex-wrap items-start justify-between gap-2">
                 <div>
-                  <h2 className="text-sm font-semibold text-amber-950">패키지 포함 세부항목</h2>
-                  <p className="mt-1 text-xs leading-5 text-amber-800">상품 기본값을 불러옵니다. 견적별로 수정할 수 있으며 총액에는 영향을 주지 않습니다.</p>
+                  <h2 className="text-sm font-semibold text-amber-950">패키지 포함·추가 세부항목</h2>
+                  <p className="mt-1 text-xs leading-5 text-amber-800">포함 항목은 금액을 비워두고, 별도 비용이 있는 항목만 추가 금액을 입력하세요.</p>
                 </div>
                 <span className="rounded-full bg-amber-700 px-2 py-1 text-[11px] font-semibold text-white">신규</span>
               </div>
               <div className="mt-3 space-y-2">
                 {values.includedItems.map((item, index) => (
-                  <div key={index} className="grid gap-2 sm:grid-cols-[minmax(110px,0.35fr)_minmax(180px,1fr)_auto]">
+                  <div key={index} className="grid gap-2 sm:grid-cols-[minmax(110px,0.3fr)_minmax(180px,1fr)_minmax(130px,0.4fr)_auto]">
                     <label className="sr-only" htmlFor={`included-name-${index}`}>세부항목 {index + 1} 이름</label>
                     <input
                       id={`included-name-${index}`}
@@ -765,7 +766,20 @@ function QuoteCompose() {
                       maxLength={120}
                       value={item.detail}
                       onChange={(event) => editIncludedItem(index, "detail", event.target.value)}
-                      placeholder="포함 내용"
+                      placeholder="포함·추가 내용"
+                      className="block w-full rounded-md border border-amber-300 bg-white px-3 py-2 text-sm"
+                    />
+                    <label className="sr-only" htmlFor={`included-amount-${index}`}>세부항목 {index + 1} 추가 금액</label>
+                    <input
+                      id={`included-amount-${index}`}
+                      type="number"
+                      min={0}
+                      max={100000000}
+                      step={1}
+                      inputMode="numeric"
+                      value={item.amount}
+                      onChange={(event) => editIncludedItem(index, "amount", event.target.value)}
+                      placeholder="추가 금액 (선택)"
                       className="block w-full rounded-md border border-amber-300 bg-white px-3 py-2 text-sm"
                     />
                     <button
