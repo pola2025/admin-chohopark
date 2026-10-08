@@ -38,7 +38,7 @@ export default async function MetaAdsPage({ searchParams }: MetaAdsPageProps) {
           Meta 광고 데이터를 불러오지 못했습니다
         </h2>
         <p className="mt-2 text-[13px] leading-6 text-[var(--gov-ink-sub)]">
-          저장된 데이터 조회 상태를 확인한 뒤 다시 시도해 주세요. 광고 설정이나 집행 상태는 변경되지 않았습니다.
+          잠시 후 새로고침해 주세요. 문제가 계속되면 마지막 수집 상태를 확인해 주세요.
         </p>
       </section>
     );

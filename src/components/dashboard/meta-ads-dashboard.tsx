@@ -210,11 +210,12 @@ export function MetaAdsDashboardView({
         <div className="min-w-0">
           <h2 className="text-[18px] font-bold">Meta 광고 현황</h2>
           <p className="mt-1 text-[13px] leading-6 text-[var(--gov-ink-sub)]">
-            저장된 Meta 광고 성과를 읽기 전용으로 확인합니다. 광고 수정이나 집행은 이 화면에서 할 수 없습니다.
+            캠페인별 광고비와 유입·문의 전환을 확인하세요.
           </p>
           <div className="mt-3 flex flex-wrap items-center gap-2 text-[12px] text-[var(--gov-ink-sub)]">
             <span className={`inline-flex px-2 py-1 font-medium ${tone.className}`}>{tone.label}</span>
             <span>마지막 정상 수집 {formatKstDateTime(data.sync.lastSuccessAt)} KST</span>
+            {data.sync.availableSince && <span>{data.sync.availableSince}부터 저장 · 1시간마다 갱신</span>}
           </div>
         </div>
         <a
@@ -281,7 +282,7 @@ export function MetaAdsDashboardView({
         <Alert>
           <AlertTitle>표시할 실제 광고 데이터가 없습니다</AlertTitle>
           <AlertDescription>
-            저장된 데이터가 확인되면 이 화면에 지표와 표가 표시됩니다. 값이 없는 항목은 0이 아닌 —로 표시합니다.
+            광고 성과가 집계되면 지표와 일별 내역이 표시됩니다.
           </AlertDescription>
         </Alert>
       )}
@@ -293,14 +294,14 @@ export function MetaAdsDashboardView({
           <StatCard title="노출" value={formatMetric(hasData, summary.impressions)} previousLabel="Meta 보고 수치" />
           <StatCard title="링크 클릭" value={formatMetric(hasData, summary.linkClicks)} previousLabel={hasData && summary.linkCtr != null ? `링크 클릭률 ${summary.linkCtr.toFixed(2)}%` : "링크 클릭 기준"} />
           <StatCard title="랜딩 페이지 조회" value={formatMetric(hasData, summary.landingPageViews)} previousLabel="Meta 보고 수치" />
-          <StatCard title="Meta 웹사이트 문의 전환" value={formatMetric(hasData, summary.websiteLeads)} previousLabel="실제 문의 접수 건수와 같다고 단정할 수 없음" hint="Meta의 귀속 기준으로 집계된 웹사이트 문의 전환입니다." />
+          <StatCard title="Meta 웹사이트 문의 전환" value={formatMetric(hasData, summary.websiteLeads)} previousLabel="광고 클릭 후 7일 이내 문의 완료" hint="Meta가 광고에 기여한 것으로 집계한 웹사이트 문의 완료 이벤트입니다." />
           <StatCard title="전환당 비용" value={hasData && summary.costPerLeadUsd != null ? formatCurrency(summary.costPerLeadUsd, "USD") : "—"} previousLabel="Meta 웹사이트 문의 전환 기준" metricKey="cpl" />
         </div>
       </section>
 
       <Alert className="border-[var(--gov-line-strong)] bg-[var(--gov-brand-weak)]">
         <AlertDescription>
-          오늘 수치는 아직 확정되지 않을 수 있습니다. 전환은 Meta의 7일 클릭 귀속 기준이며, 초호쉼터 관리자에 실제 접수된 문의 건수와 동일한 값으로 보지 않습니다.
+          전환은 광고 클릭 후 7일 이내 발생한 웹사이트 문의 완료를 Meta가 집계한 값입니다. 오늘 수치는 집계 중이며 이후 갱신될 수 있습니다.
         </AlertDescription>
       </Alert>
 
