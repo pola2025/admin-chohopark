@@ -32,6 +32,7 @@ const NAV_GROUPS: Array<{ title: string; items: NavItem[] }> = [
     title: "현황",
     items: [
       { name: "방문자 통계", href: "/dashboard/analytics", icon: "chart" },
+      { name: "Meta 광고", href: "/dashboard/meta-ads", icon: "chart" },
     ],
   },
 ];

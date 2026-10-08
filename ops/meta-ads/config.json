@@ -1,0 +1,15 @@
+{
+  "accountId": "639564975420619",
+  "campaignIds": ["120250878150770043"],
+  "availableSince": "2026-10-08",
+  "graphVersion": "v25.0",
+  "currency": "USD",
+  "timezone": "Asia/Seoul",
+  "lookbackDays": 8,
+  "intervalMinutes": 60,
+  "maxCampaigns": 100,
+  "maxRows": 1000,
+  "maxGraphRequests": 16,
+  "maxResponseBytes": 2097152,
+  "attribution": "7일 클릭 · 노출일 기준"
+}
