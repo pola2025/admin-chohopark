@@ -1,3 +1,4 @@
+import { requireAdminSession } from "@/lib/admin-session";
 import { NextRequest, NextResponse } from "next/server";
 import { d1All, d1First } from "@/lib/d1-client";
 
@@ -45,6 +46,8 @@ interface SourceRow {
 }
 
 export async function GET(request: NextRequest) {
+  const denied = await requireAdminSession();
+  if (denied) return denied;
   const { searchParams } = new URL(request.url);
   const days = Math.max(
     1,

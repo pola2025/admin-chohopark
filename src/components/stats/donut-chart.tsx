@@ -49,7 +49,7 @@ export function DonutChart({
   }
 
   return (
-    <div className={cn("flex items-center gap-6", className)}>
+    <div className={cn("flex flex-wrap items-center gap-6 sm:flex-nowrap", className)}>
       <div className="relative h-38 w-38 shrink-0">
         <ResponsiveContainer width="100%" height="100%">
           <PieChart>
@@ -80,7 +80,7 @@ export function DonutChart({
           <div className="text-[10px] text-muted-foreground">{centerLabel}</div>
         </div>
       </div>
-      <div className="w-full space-y-2.5 text-sm">
+      <div className="min-w-0 flex-1 space-y-2.5 text-sm">
         {items.map((item, idx) => (
           <div key={item.name} className="flex items-center gap-2">
             <span

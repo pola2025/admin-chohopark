@@ -1,3 +1,4 @@
+import { requireAdminSession } from "@/lib/admin-session";
 import { NextRequest, NextResponse } from "next/server";
 import { timingSafeEqual } from "crypto";
 import {
@@ -149,6 +150,8 @@ export async function POST(request: NextRequest) {
 
 // GET: 봇 통계 조회 (chohopark admin 무인증 공개 — 미들웨어 미적용)
 export async function GET(request: NextRequest) {
+  const denied = await requireAdminSession();
+  if (denied) return denied;
   const { searchParams } = new URL(request.url);
   const days = parseInt(searchParams.get("days") || "7", 10);
 

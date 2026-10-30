@@ -1,3 +1,4 @@
+import { requireAdminSession } from "@/lib/admin-session";
 import { NextRequest, NextResponse } from "next/server"
 import { getDailyAnalyticsFromCache } from "@/lib/d1-analytics-cache"
 import { calcChange } from "@/lib/stats/metrics"
@@ -135,6 +136,8 @@ function calculateSummary(daily: DailyVisitorData[]) {
 }
 
 export async function GET(request: NextRequest) {
+  const denied = await requireAdminSession();
+  if (denied) return denied;
   try {
     const searchParams = request.nextUrl.searchParams
     const days = parseInt(searchParams.get("days") || "90")

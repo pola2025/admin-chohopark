@@ -1,3 +1,4 @@
+import { requireAdminSession } from "@/lib/admin-session";
 import { NextRequest, NextResponse } from "next/server";
 import {
   getDailyAnalyticsFromCache,
@@ -34,6 +35,8 @@ const EMPTY_DATA = {
 };
 
 export async function GET(request: NextRequest) {
+  const denied = await requireAdminSession();
+  if (denied) return denied;
   try {
     // 쿼리 파라미터에서 days 추출 (기본값 7일)
     const { searchParams } = new URL(request.url);

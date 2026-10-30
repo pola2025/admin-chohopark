@@ -14,15 +14,21 @@ export type PeriodPreset =
   | "90d"
   | "cur-month"
   | "prev-month"
+  | "all"
   | "custom";
 
 export const PERIOD_PRESETS: Array<{ key: PeriodPreset; label: string }> = [
   { key: "today", label: "오늘" },
   { key: "7d", label: "7일" },
   { key: "30d", label: "30일" },
-  { key: "90d", label: "90일" },
-  { key: "custom", label: "사용자 지정" },
+  { key: "prev-month", label: "지난달" },
+  { key: "cur-month", label: "이번 달" },
+  { key: "all", label: "전체" },
+  { key: "custom", label: "기간 선택" },
 ];
+
+/** 「전체」 시작일 — GA4 일별 수집이 시작된 날 */
+export const ANALYTICS_EPOCH = "2025-12-09";
 
 export interface ResolvedRange {
   preset: PeriodPreset;
@@ -95,6 +101,10 @@ export function resolveRange(
       startDate = endDate.slice(0, 8) + "01";
       break;
     }
+    case "all":
+      startDate = ANALYTICS_EPOCH;
+      endDate = today;
+      break;
     case "custom": {
       endDate = custom?.end && isValidYmd(custom.end) ? custom.end : today;
       startDate =

@@ -45,3 +45,40 @@ CREATE TABLE IF NOT EXISTS meta_ads_sync (
   lease_expires_at TEXT,
   scope_json TEXT NOT NULL DEFAULT '[]'
 );
+
+CREATE TABLE IF NOT EXISTS meta_ads_breakdown_daily (
+  account_id TEXT NOT NULL,
+  campaign_id TEXT NOT NULL,
+  date TEXT NOT NULL,
+  dimension TEXT NOT NULL CHECK (dimension IN ('placement','age','gender','region','device','hour')),
+  bucket TEXT NOT NULL,
+  spend_micros INTEGER NOT NULL CHECK (spend_micros >= 0),
+  impressions INTEGER NOT NULL CHECK (impressions >= 0),
+  link_clicks INTEGER NOT NULL CHECK (link_clicks >= 0),
+  website_leads REAL NOT NULL CHECK (website_leads >= 0),
+  collected_at TEXT NOT NULL,
+  PRIMARY KEY (account_id, campaign_id, date, dimension, bucket)
+);
+CREATE INDEX IF NOT EXISTS idx_meta_ads_breakdown_dim_date
+  ON meta_ads_breakdown_daily (account_id, dimension, date);
+
+CREATE TABLE IF NOT EXISTS meta_ads_ad_daily (
+  account_id TEXT NOT NULL,
+  ad_id TEXT NOT NULL,
+  campaign_id TEXT NOT NULL,
+  date TEXT NOT NULL,
+  ad_name TEXT NOT NULL,
+  spend_micros INTEGER NOT NULL CHECK (spend_micros >= 0),
+  impressions INTEGER NOT NULL CHECK (impressions >= 0),
+  link_clicks INTEGER NOT NULL CHECK (link_clicks >= 0),
+  website_leads REAL NOT NULL CHECK (website_leads >= 0),
+  thruplays INTEGER NOT NULL DEFAULT 0,
+  video_p25 INTEGER NOT NULL DEFAULT 0,
+  video_p50 INTEGER NOT NULL DEFAULT 0,
+  video_p75 INTEGER NOT NULL DEFAULT 0,
+  video_p100 INTEGER NOT NULL DEFAULT 0,
+  collected_at TEXT NOT NULL,
+  PRIMARY KEY (account_id, ad_id, date)
+);
+CREATE INDEX IF NOT EXISTS idx_meta_ads_ad_daily_date
+  ON meta_ads_ad_daily (account_id, date);

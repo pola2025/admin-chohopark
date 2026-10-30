@@ -494,7 +494,7 @@ export function VisitorHeatmap({ daily, loading }: VisitorHeatmapProps) {
             <Grid3x3 className="h-5 w-5" />
             방문 히트맵
           </CardTitle>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             {/* 뷰 토글 */}
             <div className="flex rounded-sm border p-0.5">
               <Button

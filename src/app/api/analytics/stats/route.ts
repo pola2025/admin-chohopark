@@ -1,3 +1,4 @@
+import { requireAdminSession } from "@/lib/admin-session";
 import { NextResponse } from 'next/server';
 import {
   getDailyVisitors,
@@ -17,6 +18,8 @@ import {
  * - limit: number (기본값: 30)
  */
 export async function GET(request: Request) {
+  const denied = await requireAdminSession();
+  if (denied) return denied;
   const { searchParams } = new URL(request.url);
   const type = searchParams.get('type') || 'all';
   const limit = parseInt(searchParams.get('limit') || '30');
@@ -75,20 +78,19 @@ export async function GET(request: Request) {
  * - days: number (collect 시 수집할 일수)
  */
 export async function POST(request: Request) {
+  // 인증 확인 (CRON_SECRET 필수 — 비어 있으면 열지 않는다)
+  const authHeader = request.headers.get('authorization');
+  const cronSecret = process.env.CRON_SECRET;
+  if (!cronSecret) {
+    return NextResponse.json({ error: 'Server misconfigured' }, { status: 500 });
+  }
+  if (authHeader !== `Bearer ${cronSecret}`) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
   try {
     const body = await request.json();
     const { action, days = 30 } = body;
-
-    // 인증 확인 (선택적)
-    const authHeader = request.headers.get('authorization');
-    const cronSecret = process.env.CRON_SECRET;
-
-    if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
-    }
 
     let result: { success: boolean; message: string; count?: number };
 

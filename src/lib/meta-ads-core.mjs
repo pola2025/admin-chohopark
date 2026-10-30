@@ -53,3 +53,39 @@ export async function proxyCall(env, statements, { fetchImpl = fetch } = {}) {
   const response = await fetchImpl(new URL('/batch', parsed), { method: 'POST', headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' }, body, cache: 'no-store', redirect: 'error', signal: AbortSignal.timeout(15000) });
   const json = await boundedJson(response); if (!response.ok || !json.ok || !Array.isArray(json.result) || json.result.length !== statements.length || json.result.some(x => x.success === false)) fail('D1_REQUEST_FAILED'); return json.result;
 }
+export const BREAKDOWN_DIMENSIONS = Object.freeze(['placement', 'age', 'gender', 'region', 'device', 'hour']);
+export const D1_MAX_STATEMENTS = 20;
+export const D1_MAX_BODY_BYTES = 2097152;
+export const d1BatchBytes = statements => new TextEncoder().encode(JSON.stringify({ statements })).byteLength;
+const plainBucket = value => typeof value === 'string' && value.trim().length > 0 && value.length <= 80 && !/[\u0000-\u001f\u007f]/.test(value);
+function sourceRow(row, { accountId, campaignIds, since, until }) {
+  if (!row || typeof row !== 'object' || Array.isArray(row)) fail('SOURCE_ROW_INVALID');
+  if (String(row.account_id) !== accountId || !campaignIds.includes(String(row.campaign_id))) fail('SOURCE_ACCOUNT_MISMATCH');
+  if (!validDate(row.date_start) || row.date_start !== row.date_stop || row.date_start < since || row.date_start > until) fail('SOURCE_DATE_MISMATCH');
+  return { campaignId: String(row.campaign_id), date: row.date_start, spendMicros: usdMicros(row.spend), impressions: count(row.impressions), linkClicks: count(row.inline_link_clicks) };
+}
+export function breakdownBucket(dimension, row) {
+  let bucket;
+  if (dimension === 'placement') bucket = plainBucket(row?.publisher_platform) && plainBucket(row?.platform_position) ? row.publisher_platform + ':' + row.platform_position : null;
+  else if (dimension === 'age') bucket = row?.age;
+  else if (dimension === 'gender') bucket = ['male', 'female', 'unknown'].includes(row?.gender) ? row.gender : null;
+  else if (dimension === 'region') bucket = row?.region;
+  else if (dimension === 'device') bucket = row?.device_platform;
+  else if (dimension === 'hour') bucket = /^([01]\d|2[0-3]):00:00 - \1:59:59$/.exec(typeof row?.hourly_stats_aggregated_by_advertiser_time_zone === 'string' ? row.hourly_stats_aggregated_by_advertiser_time_zone : '')?.[1] ?? null;
+  else fail('BREAKDOWN_DIMENSION_INVALID');
+  if (!plainBucket(bucket)) fail('BREAKDOWN_BUCKET_INVALID'); return bucket;
+}
+export function videoMetric(actions) {
+  if (actions === undefined || actions === null) return 0; if (!Array.isArray(actions) || actions.length > 20) fail('INVALID_VIDEO_ACTIONS');
+  const match = actions.filter(x => x?.action_type === 'video_view'); if (match.length > 1) fail('DUPLICATE_ACTION_TYPE'); return count(match[0]?.value ?? match[0]?.['7d_click'] ?? 0);
+}
+export function normalizeBreakdown(row, dimension, { accountId = ACCOUNT_ID, campaignIds, since, until, collectedAt }) {
+  if (!BREAKDOWN_DIMENSIONS.includes(dimension)) fail('BREAKDOWN_DIMENSION_INVALID');
+  const base = sourceRow(row, { accountId, campaignIds, since, until });
+  return { ...base, dimension, bucket: breakdownBucket(dimension, row), websiteLeads: dimension === 'hour' ? 0 : actionValue(row.actions, 'offsite_conversion.fb_pixel_lead'), collectedAt };
+}
+export function normalizeAdInsight(row, { accountId = ACCOUNT_ID, campaignIds, since, until, collectedAt }) {
+  const base = sourceRow(row, { accountId, campaignIds, since, until });
+  if (!validId(row.ad_id) || typeof row.ad_name !== 'string' || row.ad_name.length > 500) fail('AD_IDENTITY_INVALID');
+  return { adId: row.ad_id, ...base, adName: row.ad_name, websiteLeads: actionValue(row.actions, 'offsite_conversion.fb_pixel_lead'), thruplays: videoMetric(row.video_thruplay_watched_actions), videoP25: videoMetric(row.video_p25_watched_actions), videoP50: videoMetric(row.video_p50_watched_actions), videoP75: videoMetric(row.video_p75_watched_actions), videoP100: videoMetric(row.video_p100_watched_actions), collectedAt };
+}
