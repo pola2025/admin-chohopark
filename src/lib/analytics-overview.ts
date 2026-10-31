@@ -27,6 +27,8 @@ export interface OverviewChannelRow {
   paid: boolean;
   sessions: number;
   inquiries: number;
+  /** 전화 버튼을 누른 방문 수 */
+  phones: number;
 }
 export interface OverviewMetaCampaign {
   key: string;
@@ -34,6 +36,7 @@ export interface OverviewMetaCampaign {
   name: string;
   sessions: number;
   inquiries: number;
+  phones: number;
   platforms: Array<{ label: string; sessions: number }>;
 }
 export interface OverviewPage {
@@ -82,11 +85,14 @@ export interface AnalyticsOverview {
     };
   };
   inquiries: { total: number; prevTotal: number };
+  /** 사이트 전화 링크(tel:) 클릭 — 2026-10-31부터 기록 */
+  phone: { clicks: number; sessions: number; prevClicks: number };
   funnel: {
     sessions: number;
     reachedOffer: number;
     quoteOpenSessions: number;
     leadSessions: number;
+    phoneSessions: number;
     inquiries: number;
   };
   channels: OverviewChannelRow[];
@@ -159,6 +165,7 @@ export async function loadOverview(
 
   const human = "event_type='page_view' AND is_bot=0";
   const firstTouch = `WITH f AS (SELECT session_id, MIN(created_at) m FROM visit_events WHERE created_at>=? AND created_at<? AND ${human} GROUP BY session_id)`;
+  const phoneSessions = `p AS (SELECT DISTINCT session_id FROM visit_events WHERE created_at>=? AND created_at<? AND event_type='phone_click' AND is_bot=0)`;
 
   const results = await d1Batch([
     /* 0 */ {
@@ -174,20 +181,23 @@ export async function loadOverview(
       params: [cur.isoFrom, cur.isoTo],
     },
     /* 3 */ {
-      sql: `${firstTouch} SELECT e.referrer ref, e.utm_source src, e.utm_medium med, e.utm_campaign camp,
+      sql: `${firstTouch}, ${phoneSessions} SELECT e.referrer ref, e.utm_source src, e.utm_medium med, e.utm_campaign camp,
         CASE WHEN instr(e.query,'NaPm=')>0 OR instr(e.query,'n_media=')>0 THEN 1 ELSE 0 END napm,
         CASE WHEN instr(e.query,'utm_id=')>0 THEN substr(e.query, instr(e.query,'utm_id=')+7, 24) ELSE '' END uid,
-        COUNT(DISTINCT e.session_id) n
+        COUNT(DISTINCT e.session_id) n, COUNT(DISTINCT p.session_id) ph
         FROM visit_events e JOIN f ON e.session_id=f.session_id AND e.created_at=f.m
+        LEFT JOIN p ON p.session_id=e.session_id
         WHERE e.event_type='page_view' AND e.is_bot=0
         GROUP BY 1,2,3,4,5,6 ORDER BY n DESC LIMIT 3000`,
-      params: [cur.isoFrom, cur.isoTo],
+      params: [cur.isoFrom, cur.isoTo, cur.isoFrom, cur.isoTo],
     },
     /* 4 */ {
       sql: `SELECT COUNT(DISTINCT CASE WHEN event_type='page_view' AND path IN (${OFFER_PATHS.map(() => "?").join(",")}) THEN session_id WHEN event_type IN ('quote_open','lead') THEN session_id END) reach,
         COUNT(DISTINCT CASE WHEN event_type='quote_open' THEN session_id END) q,
-        COUNT(DISTINCT CASE WHEN event_type='lead' THEN session_id END) l
-        FROM visit_events WHERE created_at>=? AND created_at<? AND is_bot=0 AND (event_type IN ('quote_open','lead') OR path IN (${OFFER_PATHS.map(() => "?").join(",")}))`,
+        COUNT(DISTINCT CASE WHEN event_type='lead' THEN session_id END) l,
+        COUNT(DISTINCT CASE WHEN event_type='phone_click' THEN session_id END) ph,
+        SUM(CASE WHEN event_type='phone_click' THEN 1 ELSE 0 END) pc
+        FROM visit_events WHERE created_at>=? AND created_at<? AND is_bot=0 AND (event_type IN ('quote_open','lead','phone_click') OR path IN (${OFFER_PATHS.map(() => "?").join(",")}))`,
       params: [...OFFER_PATHS, cur.isoFrom, cur.isoTo, ...OFFER_PATHS],
     },
     /* 5 */ {
@@ -232,6 +242,10 @@ export async function loadOverview(
     },
     /* 15 */ { sql: `SELECT MAX(date) d FROM daily_analytics`, params: [] },
     /* 16 */ { sql: `SELECT MIN(created_at) m FROM visit_events`, params: [] },
+    /* 17 */ {
+      sql: `SELECT COUNT(*) n FROM visit_events WHERE created_at>=? AND created_at<? AND event_type='phone_click' AND is_bot=0`,
+      params: [prev.isoFrom, prev.isoTo],
+    },
   ]);
 
   const r = results.map(rowsOf);
@@ -243,13 +257,20 @@ export async function loadOverview(
     r[14].map((x) => [str(x.campaign_id), str(x.name)]),
   );
   const sessionsBy = new Map<ChannelKey, number>();
+  const phonesBy = new Map<ChannelKey, number>();
   const metaBy = new Map<
     string,
-    { sessions: number; inquiries: number; platforms: Map<string, number> }
+    {
+      sessions: number;
+      inquiries: number;
+      phones: number;
+      platforms: Map<string, number>;
+    }
   >();
   const metaLabels = new Map<string, string>();
   for (const x of r[3]) {
     const n = num(x.n);
+    const ph = num(x.ph);
     const key = classifyInflow({
       referrer: str(x.ref),
       utmSource: str(x.src),
@@ -257,6 +278,7 @@ export async function loadOverview(
       naverAd: num(x.napm) === 1,
     });
     sessionsBy.set(key, (sessionsBy.get(key) || 0) + n);
+    if (ph) phonesBy.set(key, (phonesBy.get(key) || 0) + ph);
     if (key === "meta_ad") {
       const uid = str(x.uid).split("&")[0];
       const ck = /^\d{8,}$/.test(uid) ? uid : str(x.camp) || "(없음)";
@@ -264,9 +286,11 @@ export async function loadOverview(
       const m = metaBy.get(ck) || {
         sessions: 0,
         inquiries: 0,
+        phones: 0,
         platforms: new Map(),
       };
       m.sessions += n;
+      m.phones += ph;
       const pl = metaPlatformLabel(str(x.src));
       m.platforms.set(pl, (m.platforms.get(pl) || 0) + n);
       metaBy.set(ck, m);
@@ -289,6 +313,7 @@ export async function loadOverview(
       const m = metaBy.get(ck) || {
         sessions: 0,
         inquiries: 0,
+        phones: 0,
         platforms: new Map(),
       };
       m.inquiries += 1;
@@ -308,6 +333,7 @@ export async function loadOverview(
       paid: !!CHANNELS[key].paid,
       sessions: sessionsBy.get(key) || 0,
       inquiries: inquiriesBy.get(key) || 0,
+      phones: phonesBy.get(key) || 0,
     }))
     .sort((a, b) => b.sessions - a.sessions || b.inquiries - a.inquiries);
 
@@ -325,11 +351,13 @@ export async function loadOverview(
       name,
       sessions: 0,
       inquiries: 0,
+      phones: 0,
       platforms: [],
       pmap: new Map<string, number>(),
     };
     cur0.sessions += m.sessions;
     cur0.inquiries += m.inquiries;
+    cur0.phones += m.phones;
     for (const [p, n] of m.platforms)
       cur0.pmap.set(p, (cur0.pmap.get(p) || 0) + n);
     merged.set(mk, cur0);
@@ -476,11 +504,17 @@ export async function loadOverview(
       },
     },
     inquiries: { total: r[7].length, prevTotal: num(r[8][0]?.n) },
+    phone: {
+      clicks: num(r[4][0]?.pc),
+      sessions: num(r[4][0]?.ph),
+      prevClicks: num(r[17][0]?.n),
+    },
     funnel: {
       sessions: num(k0.s),
       reachedOffer: num(r[4][0]?.reach),
       quoteOpenSessions: num(r[4][0]?.q),
       leadSessions: num(r[4][0]?.l),
+      phoneSessions: num(r[4][0]?.ph),
       inquiries: r[7].length,
     },
     channels,

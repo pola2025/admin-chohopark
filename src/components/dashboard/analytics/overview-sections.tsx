@@ -100,6 +100,7 @@ function Kpi({
   delta,
   children,
   highlight,
+  className,
 }: {
   kind: SourceKind;
   title: string;
@@ -109,9 +110,16 @@ function Kpi({
   delta?: React.ReactNode;
   children?: React.ReactNode;
   highlight?: boolean;
+  className?: string;
 }) {
   return (
-    <Card className={cn("gap-0 py-0", highlight && "ring-1 ring-pink-200")}>
+    <Card
+      className={cn(
+        "gap-0 py-0",
+        highlight && "ring-1 ring-pink-200",
+        className,
+      )}
+    >
       <CardContent className="space-y-1 p-4">
         <div className="flex items-center gap-1.5">
           <SourceBadge kind={kind} />
@@ -143,19 +151,22 @@ export function OverviewKpis({
 }) {
   if (loading || !data) {
     return (
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-6">
-        {Array.from({ length: 6 }).map((_, i) => (
-          <Skeleton key={i} className="h-28 w-full" />
+      <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+        {Array.from({ length: 7 }).map((_, i) => (
+          <Skeleton
+            key={i}
+            className={cn("h-28 w-full", i === 6 && "col-span-2")}
+          />
         ))}
       </div>
     );
   }
-  const { self, ga4, inquiries } = data;
+  const { self, ga4, inquiries, phone } = data;
   const noGa = ga4.days === 0;
   const returningPct =
     self.visitors > 0 ? (self.returning / self.visitors) * 100 : 0;
   return (
-    <div className="grid grid-cols-2 gap-3 lg:grid-cols-6">
+    <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
       <Kpi
         kind="self"
         title="방문"
@@ -232,6 +243,20 @@ export function OverviewKpis({
         help="홈페이지 견적·상담 폼으로 접수된 문의 수입니다(D1 inquiries)."
         delta={<Delta cur={inquiries.total} prev={inquiries.prevTotal} />}
         highlight
+      />
+      <Kpi
+        kind="self"
+        title="전화 클릭"
+        value={`${formatNumber(phone.clicks)}회`}
+        sub={
+          phone.sessions > 0
+            ? `${formatNumber(phone.sessions)}개 방문 · 방문 대비 ${formatPercent((phone.sessions / Math.max(1, self.sessions)) * 100)}`
+            : "2026-10-31부터 기록"
+        }
+        help="사이트의 전화 걸기 버튼(머리글·하단 고정 바·상품 안내 등)을 누른 횟수입니다. 실제로 통화가 연결됐는지는 알 수 없습니다. 2026-10-31부터 기록하며 봇은 뺍니다."
+        delta={<Delta cur={phone.clicks} prev={phone.prevClicks} />}
+        highlight
+        className="col-span-2"
       />
     </div>
   );
@@ -326,6 +351,12 @@ export function InquiryOps({
                     value: data.funnel.inquiries,
                     base: data.funnel.sessions,
                     color: "#ec4899",
+                  },
+                  {
+                    label: "전화 버튼을 누른 방문",
+                    value: data.funnel.phoneSessions,
+                    base: data.funnel.sessions,
+                    color: "#f59e0b",
                   },
                 ].map((s, i) => (
                   <div key={s.label} className="space-y-1 text-sm">

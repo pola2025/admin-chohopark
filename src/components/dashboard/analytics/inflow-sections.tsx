@@ -33,6 +33,10 @@ function rate(inquiries: number, sessions: number) {
     : "–";
 }
 
+function phones(n: number) {
+  return n ? formatNumber(n) : <span className="text-muted-foreground">0</span>;
+}
+
 export function ChannelTable({
   data,
   loading,
@@ -49,7 +53,7 @@ export function ChannelTable({
         <CardTitle className="text-base">유입 경로</CardTitle>
         <CardDescription>
           방문은 세션 첫 유입 기준 · 문의는 접수 때 저장된 첫 유입 주소 기준 ·
-          봇 제외
+          전화 클릭은 전화 버튼을 누른 방문 수 · 봇 제외
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -70,6 +74,9 @@ export function ChannelTable({
                   <TableHead className="text-right">문의</TableHead>
                   <TableHead className="text-right whitespace-nowrap">
                     방문 대비 문의
+                  </TableHead>
+                  <TableHead className="text-right whitespace-nowrap">
+                    전화 클릭
                   </TableHead>
                 </TableRow>
               </TableHeader>
@@ -144,6 +151,9 @@ export function ChannelTable({
                       <TableCell className="text-right tabular-nums">
                         {rate(c.inquiries, c.sessions)}
                       </TableCell>
+                      <TableCell className="text-right tabular-nums">
+                        {phones(c.phones)}
+                      </TableCell>
                     </TableRow>,
                     ...(isMeta && metaOpen
                       ? data.metaCampaigns.map((m) => (
@@ -186,6 +196,9 @@ export function ChannelTable({
                             <TableCell className="text-right tabular-nums">
                               {rate(m.inquiries, m.sessions)}
                             </TableCell>
+                            <TableCell className="text-right tabular-nums">
+                              {phones(m.phones)}
+                            </TableCell>
                           </TableRow>
                         ))
                       : []),
@@ -202,6 +215,9 @@ export function ChannelTable({
                   </TableCell>
                   <TableCell className="text-right tabular-nums">
                     {rate(totalInquiries, total)}
+                  </TableCell>
+                  <TableCell className="text-right tabular-nums">
+                    {formatNumber(data.phone.sessions)}
                   </TableCell>
                 </TableRow>
               </TableBody>
