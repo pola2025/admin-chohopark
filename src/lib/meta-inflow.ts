@@ -1,5 +1,5 @@
 import { d1Batch } from "@/lib/d1-client";
-import { kstBoundsUtc } from "@/lib/api-guard";
+import { kstBoundsUtc, shiftYmd } from "@/lib/api-guard";
 import {
   deviceLabel,
   genderLabel,
@@ -80,12 +80,17 @@ export interface MetaInflow {
     p100: number;
   };
   campaigns: MetaInflowCampaign[];
+  /** 기간 안 날짜별 — 수집 시작일(또는 첫 기록)부터 기간 끝(오늘까지)을 빈 날 없이 채운다 */
   daily: Array<{
     date: string;
     spend: number;
     clicks: number;
     impressions: number;
+    landingPageViews: number;
+    pixelLeads: number;
     sessions: number;
+    reached: number;
+    inquiries: number;
   }>;
   ads: Array<{
     adId: string;
@@ -178,7 +183,7 @@ export async function loadMetaInflow(
 
   const base = await d1Batch([
     /* 0 */ {
-      sql: "SELECT status, last_success_at, scope_json FROM meta_ads_sync WHERE account_id=? LIMIT 1",
+      sql: "SELECT status, last_success_at, scope_json, available_since FROM meta_ads_sync WHERE account_id=? LIMIT 1",
       params: [ACCOUNT],
     },
     // runaway-ok: 안쪽 합계는 캠페인 수(최대 100)로 묶이고 바깥에 LIMIT 101
@@ -190,7 +195,7 @@ export async function loadMetaInflow(
       params: [ACCOUNT, start, end, ACCOUNT],
     },
     /* 2 */ {
-      sql: `SELECT date, SUM(spend_micros) sp, SUM(impressions) imp, SUM(link_clicks) clk FROM meta_ads_daily WHERE account_id=? AND date>=? AND date<=?${cf} GROUP BY date ORDER BY date LIMIT 400`,
+      sql: `SELECT date, SUM(spend_micros) sp, SUM(impressions) imp, SUM(link_clicks) clk, SUM(landing_page_views) lpv, SUM(website_leads) leads FROM meta_ads_daily WHERE account_id=? AND date>=? AND date<=?${cf} GROUP BY date ORDER BY date LIMIT 400`,
       params: [ACCOUNT, start, end, ...cp],
     },
     /* 3 */ {
@@ -201,10 +206,10 @@ export async function loadMetaInflow(
       params: [b.isoFrom, b.isoTo, ...META_SRC],
     },
     /* 4 */ {
-      sql: `${firstTouch}, m AS (SELECT e.session_id sid, e.utm_campaign camp, ${uidExpr} uid FROM visit_events e JOIN f ON e.session_id=f.session_id AND e.created_at=f.m WHERE e.event_type='page_view' AND e.is_bot=0 AND ${metaWhere})
-        SELECT m.camp camp, m.uid uid, COUNT(DISTINCT m.sid) reach FROM m JOIN visit_events v ON v.session_id=m.sid
+      sql: `${firstTouch}, m AS (SELECT e.session_id sid, e.utm_campaign camp, ${uidExpr} uid, substr(datetime(e.created_at,'+9 hours'),1,10) d FROM visit_events e JOIN f ON e.session_id=f.session_id AND e.created_at=f.m WHERE e.event_type='page_view' AND e.is_bot=0 AND ${metaWhere})
+        SELECT m.camp camp, m.uid uid, m.d d, COUNT(DISTINCT m.sid) reach FROM m JOIN visit_events v ON v.session_id=m.sid
         WHERE v.is_bot=0 AND v.created_at>=? AND v.created_at<? AND ((v.event_type='page_view' AND v.path IN (${OFFER_PATHS.map(() => "?").join(",")})) OR v.event_type IN ('quote_open','lead'))
-        GROUP BY 1,2 LIMIT 500`,
+        GROUP BY 1,2,3 LIMIT 5000`,
       params: [
         b.isoFrom,
         b.isoTo,
@@ -300,15 +305,21 @@ export async function loadMetaInflow(
     if (/^\d{8,}$/.test(ad))
       sessionsByAd.set(ad, (sessionsByAd.get(ad) || 0) + n);
   }
+  const reachedByDate = new Map<string, number>();
   for (const x of r[4]) {
     const m = keyOf(str(x.uid), str(x.camp));
     if (campaign && m.id !== campaign) continue;
     siteOf(m).reached += num(x.reach);
+    reachedByDate.set(
+      str(x.d),
+      (reachedByDate.get(str(x.d)) || 0) + num(x.reach),
+    );
   }
 
   /* 실제 문의 */
   const inquiries: MetaInflow["inquiries"] = [];
   const inquiriesByPlatform = new Map<string, number>();
+  const inquiriesByDate = new Map<string, number>();
   for (const x of r[5]) {
     const ch = inquiryChannel({
       referrer: str(x.referrer),
@@ -329,9 +340,12 @@ export async function loadMetaInflow(
       platform,
       (inquiriesByPlatform.get(platform) || 0) + 1,
     );
+    const createdAt = toKst(str(x.created_at));
+    const day = createdAt.slice(0, 10);
+    inquiriesByDate.set(day, (inquiriesByDate.get(day) || 0) + 1);
     inquiries.push({
       id: num(x.id),
-      createdAt: toKst(str(x.created_at)),
+      createdAt,
       product,
       people: num(x.people_count),
       platform,
@@ -496,17 +510,52 @@ export async function loadMetaInflow(
   } catch {
     tracked = 0;
   }
-  const daily = r[2].map((x) => ({
-    date: str(x.date),
-    spend: usd(x.sp),
-    clicks: num(x.clk),
-    impressions: num(x.imp),
-    sessions: sessionsByDate.get(str(x.date)) || 0,
-  }));
-  for (const [d, n] of sessionsByDate)
-    if (!daily.some((x) => x.date === d))
-      daily.push({ date: d, spend: 0, clicks: 0, impressions: 0, sessions: n });
-  daily.sort((a, b) => a.date.localeCompare(b.date));
+  /* 날짜별 — Meta 집계 + 사이트 도착·견적 화면·문의 */
+  const byDate = new Map<string, MetaInflow["daily"][number]>();
+  const dayOf = (date: string) => {
+    let v = byDate.get(date);
+    if (!v)
+      byDate.set(
+        date,
+        (v = {
+          date,
+          spend: 0,
+          clicks: 0,
+          impressions: 0,
+          landingPageViews: 0,
+          pixelLeads: 0,
+          sessions: 0,
+          reached: 0,
+          inquiries: 0,
+        }),
+      );
+    return v;
+  };
+  for (const x of r[2]) {
+    const v = dayOf(str(x.date));
+    v.spend = usd(x.sp);
+    v.clicks = num(x.clk);
+    v.impressions = num(x.imp);
+    v.landingPageViews = num(x.lpv);
+    v.pixelLeads = num(x.leads);
+  }
+  for (const [d, n] of sessionsByDate) dayOf(d).sessions = n;
+  for (const [d, n] of reachedByDate) dayOf(d).reached = n;
+  for (const [d, n] of inquiriesByDate) dayOf(d).inquiries = n;
+  // 집행이 없던 날도 목록에 0으로 남긴다. 수집 시작 전 날짜는 집행 여부를 모르므로 채우지 않는다.
+  if (byDate.size > 0) {
+    const since = str(sync.available_since);
+    const from = since > start ? since : start;
+    const today = new Date(Date.now() + 9 * 3600_000)
+      .toISOString()
+      .slice(0, 10);
+    const until = end < today ? end : today;
+    for (let d = from, i = 0; d <= until && i < 400; d = shiftYmd(d, 1), i++)
+      dayOf(d);
+  }
+  const daily = [...byDate.values()]
+    .filter((x) => x.date >= start && x.date <= end)
+    .sort((a, b) => a.date.localeCompare(b.date));
 
   return {
     range: { start, end, campaign: campaign || "all" },

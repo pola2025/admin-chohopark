@@ -17,6 +17,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Table,
   TableBody,
@@ -129,6 +130,251 @@ function Bar({
         }}
       />
     </div>
+  );
+}
+
+type Grain = "day" | "week" | "month";
+type DailyRow = MetaInflow["daily"][number];
+type Totals = Omit<DailyRow, "date">;
+type PeriodRow = Totals & {
+  key: string;
+  from: string;
+  to: string;
+  days: number;
+  cumSpend: number;
+};
+
+const WEEKDAY = ["일", "월", "화", "수", "목", "금", "토"];
+const dow = (ymd: string) => new Date(ymd + "T00:00:00Z").getUTCDay();
+const md = (ymd: string) => ymd.slice(5).replace("-", "/");
+const nextDay = (ymd: string) =>
+  new Date(Date.parse(ymd + "T00:00:00Z") + 86_400_000)
+    .toISOString()
+    .slice(0, 10);
+
+/** 날짜별 행을 일·주(월요일 시작)·월 단위로 묶는다. 최신 기간이 위로 온다. */
+function groupDaily(daily: DailyRow[], grain: Grain): PeriodRow[] {
+  const map = new Map<string, PeriodRow>();
+  for (const d of daily) {
+    const key =
+      grain === "day"
+        ? d.date
+        : grain === "month"
+          ? d.date.slice(0, 7)
+          : new Date(
+              Date.parse(d.date + "T00:00:00Z") -
+                ((dow(d.date) + 6) % 7) * 86_400_000,
+            )
+              .toISOString()
+              .slice(0, 10);
+    let row = map.get(key);
+    if (!row)
+      map.set(
+        key,
+        (row = {
+          key,
+          from: d.date,
+          to: d.date,
+          days: 0,
+          spend: 0,
+          clicks: 0,
+          impressions: 0,
+          landingPageViews: 0,
+          pixelLeads: 0,
+          sessions: 0,
+          reached: 0,
+          inquiries: 0,
+          cumSpend: 0,
+        }),
+      );
+    row.to = d.date;
+    row.days += 1;
+    row.spend += d.spend;
+    row.clicks += d.clicks;
+    row.impressions += d.impressions;
+    row.landingPageViews += d.landingPageViews;
+    row.pixelLeads += d.pixelLeads;
+    row.sessions += d.sessions;
+    row.reached += d.reached;
+    row.inquiries += d.inquiries;
+  }
+  const rows = [...map.values()];
+  let cum = 0;
+  for (const r of rows) r.cumSpend = cum += r.spend;
+  return rows.reverse();
+}
+
+/** 주·월이 조회 기간에 잘려 일부만 들어가면 실제로 더한 날짜를 옆에 적는다 */
+function periodLabel(
+  r: PeriodRow,
+  grain: Grain,
+): { main: string; sub?: string } {
+  if (grain === "day")
+    return { main: `${md(r.from)} (${WEEKDAY[dow(r.from)]})` };
+  if (grain === "week")
+    return {
+      main: `${md(r.from)} ~ ${md(r.to)}`,
+      sub: r.days < 7 ? `${r.days}일` : undefined,
+    };
+  const whole = r.from.endsWith("-01") && nextDay(r.to).slice(0, 7) !== r.key;
+  return {
+    main: `${r.key.slice(0, 4)}년 ${Number(r.key.slice(5, 7))}월`,
+    sub: whole ? undefined : `${md(r.from)} ~ ${md(r.to)}`,
+  };
+}
+
+function periodCells(r: Totals): string[] {
+  return [
+    usd(r.spend),
+    formatNumber(r.impressions),
+    formatNumber(r.clicks),
+    r.impressions > 0
+      ? formatPercent((r.clicks / r.impressions) * 100, 2)
+      : "–",
+    r.clicks > 0 ? usd(r.spend / r.clicks) : "–",
+    formatNumber(r.landingPageViews),
+    formatNumber(r.sessions),
+    formatNumber(r.reached),
+    formatNumber(r.inquiries),
+    r.inquiries > 0 ? usd(r.spend / r.inquiries) : "–",
+  ];
+}
+
+const PERIOD_HEADS = [
+  "지출",
+  "노출",
+  "링크 클릭",
+  "클릭률",
+  "클릭당",
+  "랜딩 조회",
+  "사이트 도착",
+  "견적 화면",
+  "실제 문의",
+  "문의당",
+  "누적 지출",
+];
+const INQUIRY_COL = PERIOD_HEADS.indexOf("실제 문의");
+
+function PeriodTable({ daily }: { daily: DailyRow[] }) {
+  const [grain, setGrain] = useState<Grain>("day");
+  const rows = useMemo(() => groupDaily(daily, grain), [daily, grain]);
+  const total = useMemo(
+    () =>
+      daily.reduce<Totals>(
+        (a, d) => ({
+          spend: a.spend + d.spend,
+          clicks: a.clicks + d.clicks,
+          impressions: a.impressions + d.impressions,
+          landingPageViews: a.landingPageViews + d.landingPageViews,
+          pixelLeads: a.pixelLeads + d.pixelLeads,
+          sessions: a.sessions + d.sessions,
+          reached: a.reached + d.reached,
+          inquiries: a.inquiries + d.inquiries,
+        }),
+        {
+          spend: 0,
+          clicks: 0,
+          impressions: 0,
+          landingPageViews: 0,
+          pixelLeads: 0,
+          sessions: 0,
+          reached: 0,
+          inquiries: 0,
+        },
+      ),
+    [daily],
+  );
+  return (
+    <Card>
+      <CardHeader className="flex flex-row flex-wrap items-start justify-between gap-3 space-y-0">
+        <div className="space-y-1.5">
+          <CardTitle className="text-base">기간별 성과 내역</CardTitle>
+          <CardDescription>
+            최신 기간이 맨 위 · 주는 월요일 시작 · 누적 지출은 조회 기간
+            첫날부터 더한 금액
+          </CardDescription>
+        </div>
+        <Tabs value={grain} onValueChange={(v) => setGrain(v as Grain)}>
+          <TabsList>
+            <TabsTrigger value="day">일별</TabsTrigger>
+            <TabsTrigger value="week">주별</TabsTrigger>
+            <TabsTrigger value="month">월별</TabsTrigger>
+          </TabsList>
+        </Tabs>
+      </CardHeader>
+      <CardContent>
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead className="whitespace-nowrap">기간</TableHead>
+              {PERIOD_HEADS.map((h) => (
+                <TableHead key={h} className="whitespace-nowrap text-right">
+                  {h}
+                </TableHead>
+              ))}
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            <TableRow className="bg-muted/50 font-semibold">
+              <TableCell className="whitespace-nowrap">
+                합계
+                <span className="ml-1 text-xs font-normal text-muted-foreground">
+                  {daily.length}일
+                </span>
+              </TableCell>
+              {periodCells(total).map((v, i) => (
+                <TableCell key={i} className="text-right tabular-nums">
+                  {v}
+                </TableCell>
+              ))}
+              <TableCell className="text-right tabular-nums">–</TableCell>
+            </TableRow>
+            {rows.map((r) => {
+              const label = periodLabel(r, grain);
+              const idle =
+                r.spend === 0 && r.sessions === 0 && r.inquiries === 0;
+              return (
+                <TableRow
+                  key={r.key}
+                  className={cn(idle && "text-muted-foreground")}
+                >
+                  <TableCell className="whitespace-nowrap tabular-nums">
+                    {label.main}
+                    {label.sub && (
+                      <span className="ml-1 text-xs text-muted-foreground">
+                        {label.sub}
+                      </span>
+                    )}
+                    {idle && <span className="ml-1 text-xs">집행 없음</span>}
+                  </TableCell>
+                  {periodCells(r).map((v, i) => (
+                    <TableCell
+                      key={i}
+                      className={cn(
+                        "text-right tabular-nums",
+                        i === INQUIRY_COL &&
+                          r.inquiries > 0 &&
+                          "font-semibold text-pink-700",
+                      )}
+                    >
+                      {v}
+                    </TableCell>
+                  ))}
+                  <TableCell className="text-right tabular-nums text-muted-foreground">
+                    {usd(r.cumSpend)}
+                  </TableCell>
+                </TableRow>
+              );
+            })}
+          </TableBody>
+        </Table>
+        <p className="mt-2 text-xs text-muted-foreground">
+          지출·노출·클릭·랜딩 조회는 Meta 집계, 사이트 도착·견적 화면은 사이트가
+          직접 센 방문, 실제 문의는 접수일 기준입니다. 집행 없는 날도 0으로
+          남깁니다.
+        </p>
+      </CardContent>
+    </Card>
   );
 }
 
@@ -609,6 +855,13 @@ export function MetaInflowDashboard({
           )}
         </CardContent>
       </Card>
+
+      {/* 기간별 내역 */}
+      {loading || !data ? (
+        <Skeleton className="h-64 w-full" />
+      ) : (
+        data.daily.length > 0 && <PeriodTable daily={data.daily} />
+      )}
 
       {/* 게재면 */}
       <Card>
