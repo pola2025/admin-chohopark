@@ -88,8 +88,10 @@ export function classifyInflow(s: InflowSignal): ChannelKey {
     return "ai";
   if (src === "ig" || src.includes("instagram")) return "instagram";
   if (src === "fb" || src.includes("facebook")) return "facebook";
-  if (src.includes("naver"))
+  if (src.includes("naver")) {
+    if (/blog|블로그/.test(med)) return "naver_blog"; // 블로그 글 CTA 짧은 링크(/r/blog)
     return /place|플레이스/.test(med) ? "naver_place" : "naver_search";
+  }
   if (src.includes("google")) return "google";
   if (src.includes("kakao") || src.includes("daum")) return "kakao";
 
