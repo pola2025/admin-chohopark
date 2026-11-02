@@ -16,6 +16,7 @@ export type ChannelKey =
   | "meta_ad"
   | "instagram"
   | "facebook"
+  | "threads"
   | "ai"
   | "kakao"
   | "bing"
@@ -37,6 +38,7 @@ export const CHANNELS: Record<
   meta_ad: { label: "Meta 광고", color: "#1877F2", paid: true },
   instagram: { label: "인스타그램 (광고 아님)", color: "#C084FC" },
   facebook: { label: "페이스북 (광고 아님)", color: "#93C5FD" },
+  threads: { label: "스레드", color: "#F472B6" },
   ai: { label: "AI 검색 (ChatGPT 등)", color: "#0891B2" },
   kakao: { label: "카카오·다음", color: "#EAB308" },
   bing: { label: "빙", color: "#94A3B8" },
@@ -88,6 +90,7 @@ export function classifyInflow(s: InflowSignal): ChannelKey {
     return "ai";
   if (src === "ig" || src.includes("instagram")) return "instagram";
   if (src === "fb" || src.includes("facebook")) return "facebook";
+  if (src.includes("threads")) return "threads"; // 스레드 프로필 짧은 링크(/th). 광고 집행분은 위에서 meta_ad
   if (src.includes("naver")) {
     if (/blog|블로그/.test(med)) return "naver_blog"; // 블로그 글 CTA 짧은 링크(/r/blog)
     return /place|플레이스/.test(med) ? "naver_place" : "naver_search";
@@ -114,6 +117,9 @@ export function classifyInflow(s: InflowSignal): ChannelKey {
       )
     )
       return "ai";
+    // 스레드 안드로이드 앱의 패키지 이름은 com.instagram.barcelona 라서 인스타그램보다 먼저 본다
+    if (/(^|\.)threads\.(net|com)$|^com\.instagram\.barcelona$/.test(host))
+      return "threads";
     if (host.includes("instagram")) return "instagram";
     if (
       host.includes("facebook") ||
@@ -186,6 +192,7 @@ function labelToChannel(label: string | null | undefined): ChannelKey {
   if (v === "구글") return "google";
   if (v === "인스타그램") return "instagram";
   if (v === "페이스북") return "facebook";
+  if (v === "스레드") return "threads";
   if (v.includes("카카오") || v.includes("다음")) return "kakao";
   if (v === "빙") return "bing";
   if (/chatgpt|perplexity|gemini/i.test(v)) return "ai";
