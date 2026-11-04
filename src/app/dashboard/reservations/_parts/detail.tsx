@@ -27,6 +27,7 @@ import {
   label,
   md,
   nextStep,
+  awaitingWeeburConfirm,
   nightsOf,
   num,
   orgOf,
@@ -55,6 +56,8 @@ const ACTION_LABEL: Record<string, string> = {
   hold_extended: "가계약 24시간 연장",
   cancelled: "예약 취소",
   additional_confirmed: "같은 날 다른 단체 확인 후 추가 예약으로 저장",
+  weebur_confirmed: "위버예약 확정",
+  weebur_rejected: "위버 접수 거절",
 };
 
 export type PaymentDraft = {
@@ -115,6 +118,7 @@ export function ReservationDetail({
   const nights = nightsOf(r);
   const t = timesOf(r);
   const step = nextStep(r);
+  const awaiting = awaitingWeeburConfirm(r);
 
   const stayDays: string[] = [];
   if (nights === 0) stayDays.push(r.useDate);
@@ -162,11 +166,9 @@ export function ReservationDetail({
   };
 
   const kinds = weebur
-    ? ["guest_paid", "settlement"]
+    ? ["settlement"]
     : ["deposit", "balance", "full", "partial"];
-  const methods = weebur
-    ? ["weebur", "transfer"]
-    : ["transfer", "card", "cash"];
+  const methods = weebur ? ["transfer"] : ["transfer", "card", "cash"];
   const payments = r.payments ?? [];
 
   return (
@@ -181,10 +183,38 @@ export function ReservationDetail({
             type="button"
             onClick={() => onEdit(r)}
             disabled={cancelled}
-            className={`h-11 rounded border border-[var(--gov-line-strong)] text-[14px] disabled:opacity-40 ${step ? "" : "col-span-2"}`}
+            className={`h-11 rounded border border-[var(--gov-line-strong)] text-[14px] disabled:opacity-40 ${step || awaiting ? "" : "col-span-2"}`}
           >
             수정
           </button>
+          {awaiting ? (
+            <button
+              type="button"
+              data-testid="detail-confirm-weebur"
+              disabled={busy}
+              onClick={() => {
+                if (!confirm(`${orgOf(r)} 위버예약을 확정할까요? 위버 담당자 화면에 「확정」으로 보입니다.`)) return;
+                void onPatch({ action: "confirmWeebur" });
+              }}
+              className="h-11 rounded bg-[var(--gov-brand)] text-[14px] font-semibold text-white disabled:opacity-50"
+            >
+              예약 확정
+            </button>
+          ) : null}
+          {awaiting ? (
+            <button
+              type="button"
+              data-testid="detail-reject-weebur"
+              disabled={busy}
+              onClick={() => {
+                if (!confirm(`${orgOf(r)} 접수를 거절할까요? 날짜가 비워지고, 위버 담당자 화면에 「접수 불가」로 보입니다.`)) return;
+                void onPatch({ action: "rejectWeebur" });
+              }}
+              className="col-span-2 h-9 text-[13px] text-[var(--gov-danger)] underline disabled:opacity-50"
+            >
+              접수 거절
+            </button>
+          ) : null}
           {step ? (
             <button
               type="button"
@@ -202,7 +232,7 @@ export function ReservationDetail({
               {step.label}
             </button>
           ) : null}
-          {!cancelled ? (
+          {!cancelled && !awaiting ? (
             <button
               type="button"
               disabled={busy}

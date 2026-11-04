@@ -20,7 +20,8 @@ export async function GET(request: Request, context: Context) {
 
 /**
  * 예약 한 건 손보기 — 내용 수정(update), 취소(cancel), 가계약 연장(extendHold),
- * 확인 표시 해제(clearReview). 겹침·막은 날짜 409 는 본문 그대로 돌려준다.
+ * 확인 표시 해제(clearReview), 위버예약 확정(confirmWeebur)·접수 거절(rejectWeebur).
+ * 겹침·막은 날짜 409 는 본문 그대로 돌려준다.
  */
 export async function PATCH(request: Request, context: Context) {
   const { id } = await context.params;

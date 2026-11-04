@@ -82,6 +82,10 @@ export interface Reservation {
   isAdditional: boolean;
   holdExpiresAt: string | null;
   holdExpired: boolean;
+  /** 위버예약: 초호쉼터가 확정한 시각 */
+  confirmedAt: string | null;
+  /** 위버예약: 초호쉼터가 접수를 거절한 시각(취소로 표시됨) */
+  rejectedAt: string | null;
   payments: Payment[];
   events?: ReservationEvent[];
 }
@@ -180,8 +184,8 @@ export const STAGE_LABEL: Record<Stage, string> = {
   hold: "가계약",
   confirmed: "확정",
   paid: "완납",
-  weebur_pending: "위버 결제 대기",
-  settle_pending: "정산 대기",
+  weebur_pending: "확정 대기",
+  settle_pending: "확정 · 정산 대기",
   settled: "정산 완료",
   cancelled: "취소",
 };
@@ -292,7 +296,12 @@ export function holdHours(r: Reservation, now = Date.now()) {
   return Math.round((d.getTime() - 9 * 3600e3 - now) / 3600e3);
 }
 export const stageLabel = (r: Reservation) =>
-  STAGE_LABEL[isCancelled(r) ? "cancelled" : r.stage] ?? r.stage;
+  r.rejectedAt
+    ? "접수 거절"
+    : (STAGE_LABEL[isCancelled(r) ? "cancelled" : r.stage] ?? r.stage);
+/** 초호쉼터가 아직 확정·거절하지 않은 위버 접수 */
+export const awaitingWeeburConfirm = (r: Reservation) =>
+  isWeebur(r) && !isCancelled(r) && r.stage === "weebur_pending";
 export const productName = (r: Reservation) =>
   productOf(r)?.name ?? r.productName ?? r.productType;
 export const productShort = (r: Reservation) =>
@@ -375,13 +384,7 @@ export function nextStep(
 ): { label: string; kind: string; amount: number; method: string } | null {
   if (isCancelled(r)) return null;
   if (isWeebur(r)) {
-    if (r.stage === "weebur_pending")
-      return {
-        label: "위버 결제 확인",
-        kind: "guest_paid",
-        amount: r.totalAmount,
-        method: "weebur",
-      };
+    // 확정 전(weebur_pending)은 입금 단추 대신 「예약 확정」·「접수 거절」을 보인다.
     if (r.stage === "settle_pending")
       return {
         label: "정산 입금 확인",
@@ -498,6 +501,8 @@ export function normalize(raw: Record<string, unknown>): Reservation {
     isAdditional: Boolean(x.isAdditional),
     holdExpiresAt: x.holdExpiresAt ? String(x.holdExpiresAt) : null,
     holdExpired: Boolean(x.holdExpired),
+    confirmedAt: x.confirmedAt ? String(x.confirmedAt) : null,
+    rejectedAt: x.rejectedAt ? String(x.rejectedAt) : null,
     needsReview: Boolean(x.needsReview),
     payments: Array.isArray(x.payments) ? (x.payments as Payment[]) : [],
     events: Array.isArray(x.events)

@@ -168,7 +168,7 @@ function Row({
 
 /** 위버예약: 전체 금액 · 위버 수수료 · 초호쉼터 정산 예정 + 두 단계. */
 export function WeeburBox({ r, big }: { r: Reservation; big?: boolean }) {
-  const guest = r.stage === "settle_pending" || r.stage === "settled";
+  const confirmed = r.stage === "settle_pending" || r.stage === "settled";
   const settled = r.stage === "settled";
   return (
     <div
@@ -190,7 +190,7 @@ export function WeeburBox({ r, big }: { r: Reservation; big?: boolean }) {
         tone={WEEBUR_INK}
       />
       <div className="mt-1.5 flex flex-wrap gap-x-4 gap-y-0.5">
-        <Step name="손님 → 위버 결제" done={guest} hint={guest ? "" : "입금 전"} />
+        <Step name="초호쉼터 확정" done={confirmed} hint={confirmed ? "" : "확인 전"} />
         <Step name="위버 → 초호쉼터 정산" done={settled} hint="" />
       </div>
     </div>
