@@ -1,97 +1,66 @@
-import { NextResponse } from "next/server";
-import { getSession } from "@/lib/auth";
+import {
+  MAX_PAGE_SIZE,
+  MAX_RANGE_PAGE_SIZE,
+  proxyReservationAdmin,
+} from "@/lib/reservation-proxy";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-const UPSTREAM = "https://chorigol.net/api/admin/reservations";
-const TOKEN = process.env.CONTRACT_ADMIN_API_TOKEN;
+/** 목록 조회에 넘기는 매개변수. 이 밖의 값은 버린다. */
+const LIST_PARAMS = [
+  "from",
+  "to",
+  "status",
+  "channel",
+  "query",
+  "page",
+  "pageSize",
+  "limit",
+  "source",
+  "paymentStatus",
+  "needsReview",
+  "overlapFrom",
+] as const;
 
 /**
- * 예약 목록 — chorigol.net 의 D1 예약 저장소를 대신 읽는다.
- *
- * 약정서에서 확정된 건과 구글 캘린더에 손으로 적은 건이 한 자리에 모여 있다.
- * 고객 정보는 암호화 저장이라 저쪽에서 복호화해 내려준다.
- * 브라우저가 그 토큰을 갖지 않도록 이 경로를 거친다.
+ * 예약 목록 — 기간과 겹치는 예약과 그 기간의 막은 날짜를 함께 받는다.
+ * 고객 정보는 chorigol.net 이 복호화해 내려준다.
  */
 export async function GET(request: Request) {
-  if (!(await getSession())) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const incoming = new URL(request.url).searchParams;
+  const search = new URLSearchParams();
+  for (const key of LIST_PARAMS) {
+    const value = incoming.get(key);
+    if (value) search.set(key, value.slice(0, 120));
   }
-  if (!TOKEN) {
-    return NextResponse.json(
-      { error: "CONTRACT_ADMIN_API_TOKEN 미설정" },
-      { status: 503 },
+  // 쪽 크기·쪽 번호는 숫자로 바꿔 상한으로 자른다.
+  const cap =
+    search.has("from") && search.has("to") ? MAX_RANGE_PAGE_SIZE : MAX_PAGE_SIZE;
+  for (const key of ["pageSize", "limit"] as const) {
+    if (!search.has(key)) continue;
+    const n = Math.floor(Number(search.get(key)));
+    search.set(
+      key,
+      String(Number.isFinite(n) ? Math.min(Math.max(n, 1), cap) : 30),
     );
   }
-
-  const incoming = new URL(request.url).searchParams;
-  const params = new URLSearchParams();
-  for (const key of [
-    "status",
-    "paymentStatus",
-    "source",
-    "from",
-    "to",
-    "query",
-    "needsReview",
-    "page",
-    "pageSize",
-  ]) {
-    const value = incoming.get(key);
-    if (value) params.set(key, value);
+  if (search.has("page")) {
+    const n = Math.floor(Number(search.get("page")));
+    search.set("page", String(Number.isFinite(n) ? Math.min(Math.max(n, 1), 500) : 1));
   }
-
-  try {
-    const res = await fetch(`${UPSTREAM}?${params}`, {
-      headers: { Authorization: `Bearer ${TOKEN}` },
-      cache: "no-store",
-    });
-    if (!res.ok) {
-      return NextResponse.json({ error: "조회 실패" }, { status: 502 });
-    }
-    return NextResponse.json(await res.json());
-  } catch {
-    return NextResponse.json({ error: "조회 실패" }, { status: 500 });
-  }
+  return proxyReservationAdmin(request, {
+    method: "GET",
+    path: "/reservations",
+    search,
+  });
 }
 
-/** 구글 캘린더에 손으로 적은 예약을 가져온다. */
+/** 관리자 예약 등록. 겹침·막은 날짜 409 는 본문 그대로 돌려준다. */
 export async function POST(request: Request) {
-  if (!(await getSession())) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-  if (!TOKEN) {
-    return NextResponse.json(
-      { error: "CONTRACT_ADMIN_API_TOKEN 미설정" },
-      { status: 503 },
-    );
-  }
-
-  const action = new URL(request.url).searchParams.get("action");
-  if (action !== "sync-calendar") {
-    return NextResponse.json({ error: "지원하지 않는 요청" }, { status: 400 });
-  }
-
-  try {
-    const res = await fetch(`${UPSTREAM}/sync-calendar`, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${TOKEN}`,
-        "Content-Type": "application/json",
-      },
-      body: "{}",
-      cache: "no-store",
-    });
-    const body = await res.json().catch(() => null);
-    if (!res.ok) {
-      return NextResponse.json(
-        { error: body?.message ?? "동기화 실패" },
-        { status: 502 },
-      );
-    }
-    return NextResponse.json(body);
-  } catch {
-    return NextResponse.json({ error: "동기화 실패" }, { status: 500 });
-  }
+  return proxyReservationAdmin(request, {
+    method: "POST",
+    path: "/reservations",
+    withBody: true,
+  });
 }
