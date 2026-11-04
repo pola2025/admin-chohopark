@@ -607,7 +607,7 @@ function QuoteCompose() {
 
       <div className="grid gap-5 xl:grid-cols-[minmax(430px,0.9fr)_minmax(520px,1.1fr)]">
         <form onSubmit={preview} className="space-y-5 rounded-lg border border-gray-200 bg-white p-5 shadow-sm">
-          <fieldset disabled={busy || formLocked} className="space-y-4 disabled:opacity-70">
+          <fieldset disabled={busy || formLocked} className="min-w-0 space-y-4 disabled:opacity-70">
             <div className="grid gap-3 sm:grid-cols-2">
               <label className="text-sm font-medium text-gray-800">
                 고객명
@@ -671,7 +671,7 @@ function QuoteCompose() {
               </label>
             </div>
 
-            <div className="grid gap-3 sm:grid-cols-2">
+            <div className="grid items-end gap-3 sm:grid-cols-2">
               <label className="text-sm font-medium text-gray-800">
                 총 인원
                 <input
@@ -746,9 +746,9 @@ function QuoteCompose() {
                 </div>
                 <span className="rounded-full bg-amber-700 px-2 py-1 text-[11px] font-semibold text-white">신규</span>
               </div>
-              <div className="mt-3 space-y-2">
+              <div className="@container mt-3 space-y-2">
                 {values.includedItems.map((item, index) => (
-                  <div key={index} className="grid gap-2 sm:grid-cols-[minmax(110px,0.3fr)_minmax(180px,1fr)_minmax(130px,0.4fr)_auto]">
+                  <div key={index} className="grid min-w-0 gap-2 rounded-md border border-amber-200 bg-white/70 p-2 @xs:grid-cols-[minmax(0,1fr)_9.5rem_auto] @2xl:grid-cols-[minmax(0,0.7fr)_minmax(0,1.6fr)_9.5rem_auto]">
                     <label className="sr-only" htmlFor={`included-name-${index}`}>세부항목 {index + 1} 이름</label>
                     <input
                       id={`included-name-${index}`}
@@ -757,7 +757,7 @@ function QuoteCompose() {
                       value={item.name}
                       onChange={(event) => editIncludedItem(index, "name", event.target.value)}
                       placeholder="항목명"
-                      className="block w-full rounded-md border border-amber-300 bg-white px-3 py-2 text-sm"
+                      className="block w-full min-w-0 rounded-md border border-amber-300 bg-white px-3 py-2 text-sm font-medium @xs:col-start-1 @xs:row-start-1"
                     />
                     <label className="sr-only" htmlFor={`included-detail-${index}`}>세부항목 {index + 1} 설명</label>
                     <input
@@ -767,7 +767,7 @@ function QuoteCompose() {
                       value={item.detail}
                       onChange={(event) => editIncludedItem(index, "detail", event.target.value)}
                       placeholder="포함·추가 내용"
-                      className="block w-full rounded-md border border-amber-300 bg-white px-3 py-2 text-sm"
+                      className="block w-full min-w-0 rounded-md border border-amber-300 bg-white px-3 py-2 text-sm @xs:col-span-3 @xs:row-start-2 @2xl:col-span-1 @2xl:col-start-2 @2xl:row-start-1"
                     />
                     <label className="sr-only" htmlFor={`included-amount-${index}`}>세부항목 {index + 1} 추가 금액</label>
                     <input
@@ -780,13 +780,13 @@ function QuoteCompose() {
                       value={item.amount}
                       onChange={(event) => editIncludedItem(index, "amount", event.target.value)}
                       placeholder="추가 금액 (선택)"
-                      className="block w-full rounded-md border border-amber-300 bg-white px-3 py-2 text-sm"
+                      className="block w-full min-w-0 rounded-md border border-amber-300 bg-white px-3 py-2 text-sm @xs:col-start-2 @xs:row-start-1 @2xl:col-start-3"
                     />
                     <button
                       type="button"
                       disabled={values.includedItems.length <= 1}
                       onClick={() => removeIncludedItem(index)}
-                      className="rounded-md px-3 py-2 text-sm font-medium text-amber-800 hover:bg-amber-100 disabled:cursor-not-allowed disabled:opacity-40"
+                      className="rounded-md px-3 py-2 text-sm font-medium text-amber-800 hover:bg-amber-100 disabled:cursor-not-allowed disabled:opacity-40 @xs:col-start-3 @xs:row-start-1 @2xl:col-start-4"
                     >
                       삭제
                     </button>
