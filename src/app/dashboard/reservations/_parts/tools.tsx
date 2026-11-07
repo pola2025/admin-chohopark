@@ -50,52 +50,7 @@ function Modal({
   );
 }
 
-export const WEEBUR_URL = "https://weebur.chorigol.net";
-
-/**
- * 위버 담당자 접속 안내. 인증은 Cloudflare Access(허용 이메일 + 일회용 코드)가 맡으므로
- * 이 화면은 주소와 설명만 보여 준다. 서버를 부르지 않는다.
- */
-export function WeeburAccessDialog({ onClose }: { onClose: () => void }) {
-  const copy = async () => {
-    try {
-      await navigator.clipboard.writeText(WEEBUR_URL);
-      toast.success("주소를 복사했습니다");
-    } catch {
-      toast.error("복사하지 못했습니다. 주소를 길게 눌러 복사해 주세요.");
-    }
-  };
-  return (
-    <Modal title="위버 담당자 접속 안내" onClose={onClose} testId="weebur-dialog">
-      <div className="flex gap-2">
-        <input
-          readOnly
-          data-testid="weebur-url"
-          className={INPUT}
-          value={WEEBUR_URL}
-          onFocus={(e) => e.currentTarget.select()}
-        />
-        <button
-          type="button"
-          onClick={() => void copy()}
-          className="h-10 shrink-0 rounded bg-[var(--gov-brand)] px-4 text-[13px] font-semibold text-white"
-        >
-          복사
-        </button>
-      </div>
-      <p className="text-[13.5px] leading-6 text-[var(--gov-ink-sub)]">
-        위버 담당자는 허용된 이메일로 받은 일회용 코드로 로그인합니다. 허용
-        이메일은 Cloudflare Access 에서 관리합니다.
-      </p>
-      <p className={`text-[12.5px] leading-5 ${FAINT}`}>
-        담당자가 접수한 예약은 이 화면에 위버예약 · 위버 결제 대기로 들어오고,
-        월~목 날짜만 고를 수 있습니다.
-      </p>
-    </Modal>
-  );
-}
-
-/** 휴무·내부 행사 날짜 막기. 막은 날은 위버 담당자가 고를 수 없고, 관리자 등록은 확인을 거친다. */
+/** 휴무·내부 행사 날짜 막기. 막은 날에 관리자가 예약을 넣으면 한 번 더 확인을 거친다. */
 export function BlockDialog({
   initialDate,
   blocks,
@@ -174,8 +129,8 @@ export function BlockDialog({
   return (
     <Modal title="날짜 막기" onClose={onClose} testId="block-dialog">
       <p className="text-[13.5px] leading-6 text-[var(--gov-ink-sub)]">
-        휴무나 내부 행사가 있는 날을 막습니다. 위버 담당자 화면에서는 고를 수
-        없고, 이 화면에서 예약을 넣으면 한 번 더 확인합니다.
+        휴무나 내부 행사가 있는 날을 막습니다. 막은 날에 예약을 넣으면 한 번 더
+        확인합니다.
       </p>
       <div className="grid grid-cols-[150px_1fr] gap-2">
         <input

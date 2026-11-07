@@ -31,7 +31,7 @@ import {
   type Channel,
   type Reservation,
 } from "./_parts/model";
-import { BlockDialog, WeeburAccessDialog } from "./_parts/tools";
+import { BlockDialog } from "./_parts/tools";
 import {
   CalendarGrid,
   DayPanel,
@@ -74,7 +74,7 @@ export default function ReservationsPage() {
   const [eventsLoading, setEventsLoading] = useState(false);
   const [formMode, setFormMode] = useState<FormMode | null>(null);
   const [formKey, setFormKey] = useState(0);
-  const [dialog, setDialog] = useState<"weebur" | "block" | null>(null);
+  const [dialog, setDialog] = useState<"block" | null>(null);
   const [busy, setBusy] = useState(false);
   const busyRef = useRef(false);
 
@@ -490,13 +490,6 @@ export default function ReservationsPage() {
         <div className="flex w-full flex-wrap items-center gap-2 md:ml-auto md:w-auto">
           <button
             type="button"
-            onClick={() => setDialog("weebur")}
-            className="h-9 rounded border border-[#d8ccf2] bg-[#faf8fe] px-3 text-[13px] text-[#5b3fa3]"
-          >
-            위버 담당자 접속 안내
-          </button>
-          <button
-            type="button"
             onClick={() => setDialog("block")}
             className="h-9 rounded border border-[var(--gov-line-strong)] bg-white px-3 text-[13px]"
           >
@@ -648,9 +641,6 @@ export default function ReservationsPage() {
         />
       ) : null}
 
-      {dialog === "weebur" ? (
-        <WeeburAccessDialog onClose={() => setDialog(null)} />
-      ) : null}
       {dialog === "block" ? (
         <BlockDialog
           initialDate={selected}

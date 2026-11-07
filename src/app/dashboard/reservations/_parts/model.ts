@@ -65,7 +65,7 @@ export interface Reservation {
   notes: string;
   createdAt: string;
   channel: Channel;
-  via: "admin" | "contract" | "partner" | "legacy";
+  via: "admin" | "contract" | "legacy";
   paymentPlan: PaymentPlan;
   depositRatio: number;
   unitAdult: number;

@@ -45,7 +45,6 @@ import {
 const VIA_LABEL: Record<string, string> = {
   admin: "관리자 직접 등록",
   contract: "약정서",
-  partner: "위버 담당자 접수",
   legacy: "예전 등록",
 };
 const ACTION_LABEL: Record<string, string> = {
@@ -193,7 +192,7 @@ export function ReservationDetail({
               data-testid="detail-confirm-weebur"
               disabled={busy}
               onClick={() => {
-                if (!confirm(`${orgOf(r)} 위버예약을 확정할까요? 위버 담당자 화면에 「확정」으로 보입니다.`)) return;
+                if (!confirm(`${orgOf(r)} 위버예약을 확정할까요?`)) return;
                 void onPatch({ action: "confirmWeebur" });
               }}
               className="h-11 rounded bg-[var(--gov-brand)] text-[14px] font-semibold text-white disabled:opacity-50"
@@ -207,7 +206,7 @@ export function ReservationDetail({
               data-testid="detail-reject-weebur"
               disabled={busy}
               onClick={() => {
-                if (!confirm(`${orgOf(r)} 접수를 거절할까요? 날짜가 비워지고, 위버 담당자 화면에 「접수 불가」로 보입니다.`)) return;
+                if (!confirm(`${orgOf(r)} 위버예약 접수를 거절할까요? 취소로 표시되고 날짜가 비워집니다.`)) return;
                 void onPatch({ action: "rejectWeebur" });
               }}
               className="col-span-2 h-9 text-[13px] text-[var(--gov-danger)] underline disabled:opacity-50"
@@ -620,9 +619,7 @@ export function ReservationDetail({
               {r.events.map((e, i) => (
                 <li key={`${e.at}-${i}`}>
                   {kstStamp(e.at)} ·{" "}
-                  {e.actor === "partner"
-                    ? `위버 담당자 접수${e.detail ? ` · ${e.detail}` : ""}`
-                    : e.detail || ACTION_LABEL[e.action] || e.action}
+                  {e.detail || ACTION_LABEL[e.action] || e.action}
                 </li>
               ))}
             </ul>
