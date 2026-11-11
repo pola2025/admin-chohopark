@@ -214,7 +214,8 @@ function defaultChildPrice(packageType: PackageType): string {
 }
 
 function minPeople(packageType: PackageType): number {
-  return packageType === "daytrip" ? 30 : 10;
+  // 송년회·신년회 최소 인원은 야유회와 같은 30명(사용자 2026-11-12)
+  return packageType === "overnight" ? 10 : 30;
 }
 
 function parseAmount(value: string): number {
