@@ -3,7 +3,9 @@
 import { FormEvent, Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 
-type PackageType = "daytrip" | "overnight";
+// yearend = 송년회·신년회(2026-11-11 추가, 연말연시 한정·숙박 없음·어린이 요금 없음)
+type PackageType = "daytrip" | "overnight" | "yearend";
+const PACKAGE_LABELS: Record<PackageType, string> = { daytrip: "당일 야유회", overnight: "숙박 워크샵", yearend: "송년회·신년회" };
 type CallbackTime = "" | "09:00-12:00" | "12:00-15:00" | "15:00-18:00";
 type IncludedItem = { name: string; detail: string; amount: string };
 
@@ -124,7 +126,13 @@ const money = new Intl.NumberFormat("ko-KR");
 const pendingStorageKey = "choho.manualQuote.pendingDispatch";
 
 function defaultIncludedItems(packageType: PackageType): IncludedItem[] {
-  const items = packageType === "overnight"
+  const items = packageType === "yearend"
+    ? [
+        ["세미나룸", "14:00부터 이용"],
+        ["저녁식사", "삼겹살, 오리훈제, 새우 무한리필(17:00~20:00)"],
+        ["주류", "소주, 맥주 무제한(14:00부터)"],
+      ]
+    : packageType === "overnight"
     ? [
         ["저녁식사", "삼겹살, 오리훈제, 새우, 새송이버섯"],
         ["조식", "소고기무국, 반찬 6가지"],
@@ -192,20 +200,21 @@ function inferPackageType(source: SourceInquiry): PackageType {
   ]
     .map(text)
     .join(" ");
+  if (/yearend|송년|신년/i.test(product)) return "yearend";
   if (/overnight|숙박|1박|워크샵|workshop/i.test(product)) return "overnight";
   return "daytrip";
 }
 
 function defaultAdultPrice(packageType: PackageType): string {
-  return packageType === "overnight" ? "99000" : "66000";
+  return packageType === "overnight" ? "99000" : packageType === "yearend" ? "77000" : "66000";
 }
 
 function defaultChildPrice(packageType: PackageType): string {
-  return packageType === "overnight" ? "66000" : "44000";
+  return packageType === "overnight" ? "66000" : packageType === "yearend" ? "" : "44000";
 }
 
 function minPeople(packageType: PackageType): number {
-  return packageType === "overnight" ? 10 : 30;
+  return packageType === "daytrip" ? 30 : 10;
 }
 
 function parseAmount(value: string): number {
@@ -483,7 +492,7 @@ function QuoteCompose() {
 
   function validate(): boolean {
     if (totalPeople < minimumPeople) {
-      setFieldError(`${values.packageType === "overnight" ? "숙박 워크샵" : "당일 야유회"} 최소 인원은 ${minimumPeople}명입니다.`);
+      setFieldError(`${PACKAGE_LABELS[values.packageType]} 최소 인원은 ${minimumPeople}명입니다.`);
       return false;
     }
     if (childCount < 0 || childCount > totalPeople) {
@@ -667,6 +676,7 @@ function QuoteCompose() {
                 >
                   <option value="daytrip">당일 야유회</option>
                   <option value="overnight">숙박 워크샵</option>
+                  <option value="yearend">송년회·신년회</option>
                 </select>
               </label>
             </div>
