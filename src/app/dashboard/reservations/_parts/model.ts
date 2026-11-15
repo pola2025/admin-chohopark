@@ -146,7 +146,7 @@ export const PRODUCTS: Record<
     unitAdult: 172000,
     unitChild: 66000,
   },
-  // 14:00 세미나룸부터 20:00 저녁 무한리필 끝까지, 숙박 없음. 어린이 요금은 정한 값이 없어 0.
+  // 14:00 세미나룸부터 20:00 저녁 무한리필 끝까지, 숙박 없음. 어린이 요금은 당일 야유회와 같다(2026-11-15).
   yearend: {
     name: "송년회·신년회",
     short: "송년회",
@@ -154,7 +154,7 @@ export const PRODUCTS: Record<
     in: "14:00",
     out: "20:00",
     unitAdult: 77000,
-    unitChild: 0,
+    unitChild: 44000,
   },
 };
 export const PRODUCT_ORDER: ProductType[] = [

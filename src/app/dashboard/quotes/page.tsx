@@ -3,7 +3,7 @@
 import { FormEvent, Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 
-// yearend = 송년회·신년회(2026-11-11 추가, 연말연시 한정·숙박 없음·어린이 요금 없음)
+// yearend = 송년회·신년회(2026-11-11 추가, 연말연시 한정·숙박 없음, 어린이 요금은 당일 야유회와 같음)
 type PackageType = "daytrip" | "overnight" | "yearend";
 const PACKAGE_LABELS: Record<PackageType, string> = { daytrip: "당일 야유회", overnight: "숙박 워크샵", yearend: "송년회·신년회" };
 type CallbackTime = "" | "09:00-12:00" | "12:00-15:00" | "15:00-18:00";
@@ -210,7 +210,7 @@ function defaultAdultPrice(packageType: PackageType): string {
 }
 
 function defaultChildPrice(packageType: PackageType): string {
-  return packageType === "overnight" ? "66000" : packageType === "yearend" ? "" : "44000";
+  return packageType === "overnight" ? "66000" : "44000";
 }
 
 function minPeople(packageType: PackageType): number {
