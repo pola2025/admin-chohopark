@@ -214,7 +214,10 @@ export function ReservationForm({
   const a = amounts(f, feeRate);
   const mine = n(f.adultCount) + n(f.childCount);
   const nights = Math.max(daysBetween(f.useDate, f.endDate), 0);
-  const dayOnly = f.productType === "daytrip" || nights === 0;
+  // 숙박 없는 상품(야유회·송년회)은 종료일을 고르지 않는다.
+  const sameDayProduct =
+    f.productType !== "" && PRODUCTS[f.productType].nights === 0;
+  const dayOnly = sameDayProduct || nights === 0;
 
   /** 날짜·상품이 바뀌면 받아 둔 겹침·막은 날짜 확인은 다시 받아야 한다. */
   const resetChecks = () => {
@@ -451,14 +454,15 @@ export function ReservationForm({
 
         <div>
           <p className={SEC_T}>상품</p>
-          <div className="grid grid-cols-3">
-            {PRODUCT_ORDER.map((pt, i) => (
+          {/* 상품이 넷이라 붙인 단추 한 줄 대신 2×2 로 놓는다(휴대폰 폭에서 이름이 두 줄로 꺾이지 않게). */}
+          <div className="grid grid-cols-2 gap-2">
+            {PRODUCT_ORDER.map((pt) => (
               <button
                 key={pt}
                 type="button"
                 aria-pressed={f.productType === pt}
                 onClick={() => setProduct(pt)}
-                className={`${segBtn(f.productType === pt)} ${i === 0 ? "rounded-l" : i === 2 ? "-ml-px rounded-r" : "-ml-px"}`}
+                className={`${segBtn(f.productType === pt)} rounded`}
               >
                 {PRODUCTS[pt].name}
               </button>
@@ -512,7 +516,7 @@ export function ReservationForm({
                 className={INPUT}
                 value={f.endDate}
                 min={f.useDate}
-                disabled={f.productType === "daytrip"}
+                disabled={sameDayProduct}
                 onChange={(e) =>
                   e.target.value && set({ endDate: e.target.value }, true)
                 }

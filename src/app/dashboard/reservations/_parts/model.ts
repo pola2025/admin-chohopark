@@ -7,7 +7,7 @@
  */
 
 export type Channel = "own" | "weebur";
-export type ProductType = "workshop" | "daytrip" | "retreat";
+export type ProductType = "workshop" | "daytrip" | "retreat" | "yearend";
 export type PaymentPlan = "split" | "full" | "weebur";
 export type Stage =
   | "hold"
@@ -103,7 +103,10 @@ export interface Conflict {
   people: number;
 }
 
-/** 상품 3개. 단가는 chorigol.net 기본값과 맞춘다(등록 창 미리 채움용). */
+/**
+ * 상품 4개(송년회·신년회는 연말연시 한정). 단가는 chorigol.net 기본값과 맞춘다(등록 창 미리 채움용).
+ * 송년회는 chorigol.net 이 DB 에 당일 상품으로 저장하고, 읽을 때 productType "yearend" 로 돌려준다.
+ */
 export const PRODUCTS: Record<
   ProductType,
   {
@@ -143,8 +146,23 @@ export const PRODUCTS: Record<
     unitAdult: 172000,
     unitChild: 66000,
   },
+  // 14:00 세미나룸부터 20:00 저녁 무한리필 끝까지, 숙박 없음. 어린이 요금은 정한 값이 없어 0.
+  yearend: {
+    name: "송년회·신년회",
+    short: "송년회",
+    nights: 0,
+    in: "14:00",
+    out: "20:00",
+    unitAdult: 77000,
+    unitChild: 0,
+  },
 };
-export const PRODUCT_ORDER: ProductType[] = ["workshop", "daytrip", "retreat"];
+export const PRODUCT_ORDER: ProductType[] = [
+  "workshop",
+  "daytrip",
+  "retreat",
+  "yearend",
+];
 
 export function productOf(r: Pick<Reservation, "productType">) {
   return (PRODUCTS as Record<string, (typeof PRODUCTS)[ProductType]>)[
@@ -485,7 +503,8 @@ export function normalize(raw: Record<string, unknown>): Reservation {
     balanceAmount: numOr(x.balanceAmount),
     channel: weebur ? "weebur" : "own",
     via: (x.via as Reservation["via"]) ?? "legacy",
-    paymentPlan: (x.paymentPlan as PaymentPlan) ?? (weebur ? "weebur" : "split"),
+    paymentPlan:
+      (x.paymentPlan as PaymentPlan) ?? (weebur ? "weebur" : "split"),
     depositRatio: numOr(x.depositRatio, 0.3),
     unitAdult: numOr(x.unitAdult),
     unitChild: numOr(x.unitChild),
