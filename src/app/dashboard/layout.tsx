@@ -35,6 +35,11 @@ const NAV_GROUPS: Array<{ title: string; items: NavItem[] }> = [
       { name: "Meta 광고", href: "/dashboard/meta-ads", icon: "chart" },
     ],
   },
+  {
+    // 사용자 지시 2026-11-16 「초호쉼터 업무관리 메뉴 관리자에 추가해서 폴라애드에서 진행한거 기록으로 남겨」
+    title: "업무 관리",
+    items: [{ name: "폴라애드 작업 기록", href: "/dashboard/work-log", icon: "template" }],
+  },
 ];
 
 const ALL_NAV = NAV_GROUPS.flatMap((group) => group.items);
